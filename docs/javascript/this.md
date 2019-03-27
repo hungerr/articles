@@ -69,7 +69,7 @@ window.color  // yellow
 ### 回调函数
 当做回调函数调用时，一般是全局调用：
 ```javascript
-setTimeout(sayColor) // red
+setTimeout(sayColor) // red 指向window
 
 let obj = {
     color: 'green',
@@ -77,12 +77,12 @@ let obj = {
         sayColor()
     }
 }
-obj.say() // red
+obj.say() // red  指向window
 ```
 但在一些上下文中会进行隐式绑定,比如事件中的`this`是指向于事件的目标元素的,还有一些数组的操作方法可以使用第二个参数来绑定`this`：
 ```javascript
-[1, 2, 3].forEach(function () { console.log(this.color) })  // red red red
-[1, 2, 3].forEach(function () { console.log(this.color) }, car)  // black black black
+[1, 2, 3].forEach(function () { console.log(this.color) })  // red red red  指向window
+[1, 2, 3].forEach(function () { console.log(this.color) }, car)  // black black black  指向car对象
 ```
 
 ### 绑定丢失
@@ -108,7 +108,7 @@ Object.getOwnPropertyDescriptor(car, 'sayColor')
 其中描述符对象的value属性保存了指向sayColor函数的指针，`let alias = car.sayColor`语句将指向sayColor函数的指针赋值给变量`alias`，执行`alias`函数就是在全局对象中执行函数`sayColor`。
 当做回调函数时：
 ```javascript
-setTimeout(car.sayColor, 500)  // red
+setTimeout(car.sayColor, 500)  // red  指向window
 ```
 因为Javascript中的函数参数都是按值传递的，上述代码将指向`sayColor`函数的指针赋值给了`setTimeout`函数的参数，也相当于在全局环境中执行`sayColor`函数。
 
@@ -174,8 +174,8 @@ let obj = {}
 let bindPerson = Person.bind(obj)
 let p = new bindPerson('yellow')
 
-p.color  // yellow
-obj.color  // undefined
+p.color  // yellow  this指向了创建的对象p
+obj.color  // undefined  没有指向obj
 ```
 ## 箭头函数与this
 ES6中引进了箭头函数，可以简化匿名函数的语法：
@@ -197,7 +197,7 @@ sayColor.call({ color: 'red' }).call({ color: 'green' })()  // red 依然指向�
 sayColor.call({ color: 'red' }).call({ color: 'green' }).call({ color: 'yellow' })  // red箭头函数使用call是无法绑定this的
 ```
 所以，箭头函数可以起到固定化`this`指向的效果，一定程度上可以说`this`是静态的，参考上面闭包的代码：
-```javascrip
+```javascript
 // ES6箭头函数
 let obj = {
   color: 'green',
@@ -220,7 +220,7 @@ let obj = {
 }
 ```
 当然，静态并不意味着箭头函数的`this`是永远不变的，而是随着外层函数的`this`变化而变化：
-```javascrip
+```javascript
 let obj = {
   color: 'green',
   sayColor () { 
@@ -235,7 +235,7 @@ obj.sayColor.call({ color: 'red' })()  // red
 ```
 ### 不适用情况
 在事件中想将`this`指向目标元素时，箭头函数是不适用的：
-```javascrip
+```javascript
 btn.addEventListener('click', () => {
   console.log(this)
 })
@@ -243,7 +243,7 @@ btn.addEventListener('click', () => {
 上述代码中`this`指向了全局对象，而不是事件的目标元素。
 
 将函数当做对象的方法调用并且想将`this`指向对象时，也是不适用的：
-```javascrip
+```javascript
 let obj = {
   color: 'green',
   sayColor: () => { 
@@ -254,7 +254,7 @@ let obj = {
 上述代码中`this`也指向了全局对象。
 
 总之，需要`this`动态时使用非箭头函数，需要`this`静态时使用箭头函数：
-```javascrip
+```javascript
 function Person() {
   this.color = 'yellow'
   setTimeout(() => { console.log('person color is',this.color) }, 50)

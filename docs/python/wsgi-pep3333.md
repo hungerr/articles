@@ -1,8 +1,8 @@
 # Python Web开发中的WSGI协议简介
 在Python Web开发中，我们一般使用`Flask`、`Django`等web框架来开发应用程序，生产环境中将应用部署到`Apache`、`Nginx`等web服务器时，还需要`uWSGI`或者`Gunicorn`。一个完整的部署应该类似这样：
 
-```python
-Web Server（Nginx、Apache） <-----> WSGI server（uWSGI、Gunicorn） <-----> App（Flask、Django）
+```
+Web Server(Nginx、Apache) <-----> WSGI server(uWSGI、Gunicorn) <-----> App(Flask、Django)
 ```
 
 要弄清这些概念之间的关系，就需要先理解`WSGI`协议。
@@ -11,7 +11,7 @@ Web Server（Nginx、Apache） <-----> WSGI server（uWSGI、Gunicorn） <----->
 ## 为什么需要WSGI
 我们使用web框架进行web应用程序开发时，只专注于业务的实现，HTTP协议层面相关的事情交于web服务器来处理，那么，Web服务器和应用程序之间就要知道如何进行交互。有很多不同的规范来定义这些交互，最早的一个是CGI，后来出现了改进CGI性能的FasgCGI。Java有专用的`Servlet`规范，实现了Servlet API的Java web框架开发的应用可以在任何实现了Servlet API的web服务器上运行。`WSGI`的实现受`Servlet`的启发比较大。
 ## WSGI的实现
-在`WSGI`中有两种角色：一方称之为`server`或者`gateway`, 另一方称之为`application`或者`framework`。`application`可以提供一个可调用对象供`server`方调用。`server`方会先收到用户的请求，然后会根据规范的要求调用`application`方，调用的结果会被封装成HTTP响应后再发送给客户端。
+在`WSGI`中有两种角色：一方称之为`server`或者`gateway`, 另一方称之为`application`或者`framework`。`application`可以提供一个可调用对象供`server`调用。`server`先收到用户的请求，然后调用`application`提供的可调用对象，调用的结果会被封装成HTTP响应后发送给客户端。
 ### The Application/Framework Side
 `WSGI`对`application`的要求有3个：
 
@@ -25,7 +25,7 @@ Web Server（Nginx、Apache） <-----> WSGI server（uWSGI、Gunicorn） <----->
 
 `environ`是包含了环境信息的字典。
 
-`start_response`也是一个callable，接受两个必须的参数，`status`（HTTP状态）和`response_headers`(响应消息的头),可调用对象返回前调用`start_response`。
+`start_response`也是一个callable，接受两个必须的参数，`status`（HTTP状态）和`response_headers`(响应消息的头)，可调用对象返回前调用`start_response`。
 
 下面是[PEP-3333](https://www.python.org/dev/peps/pep-3333//#the-application-framework-side "PEP-3333")实现简单`application`的代码：
 ```python

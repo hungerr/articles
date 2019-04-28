@@ -157,7 +157,7 @@ Hello world!
 ### environ
 environ字典包含了一些CGI规范要求的数据，以及WSGI规范新增的数据，还可能包含一些操作系统的环境变量以及Web服务器相关的环境变量，具体见[environ](https://www.python.org/dev/peps/pep-3333/#environ-variables)。
 
-我们可以使用python官方库wsgiref实现的`server`看一下`environ`的具体内容：
+我们可以使用python官方库`wsgiref`实现的`server`看一下`environ`的具体内容：
 ```python
 def demo_app(environ, start_response):
     from StringIO import StringIO
@@ -223,18 +223,11 @@ if environ.get('QUERY_STRING'):
 在一个完整的部署中，`uWSGI`和`Gunicorn`是实现了`WSGI`的`server`，`Django`、`Flask`是实现了`WSGI`的`application`。两者结合起来其实就能实现访问功能。实际部署中还需要`Nginx`、`Apache`的原因是它有很多`uWSGI`没有支持的更好功能，比如处理静态资源，负载均衡等。`Nginx`、`Apache`一般都不会内置`WSGI`的支持，而是通过扩展来完成。比如`Apache`服务器，会通过扩展模块`mod_wsgi`来支持`WSGI`。`Apache`和`mod_wsgi`之间通过程序内部接口传递信息，`mod_wsgi`会实现`WSGI`的`server`端、进程管理以及对`application`的调用。`Nginx`上一般是用proxy的方式，用`Nginx`的协议将请求封装好，发送给应用服务器，比如`uWSGI`，`uWSGI`会实现`WSGI`的服务端、进程管理以及对`application`的调用。
 
 ### Middleware
-`WSGI`除了`server`和`application`两个角色外，还有`middleware`中间件，`middleware`运行在`server`和`application`中间,同时具备`server`和`application`的角色，对于`server`来说，它是一个`application`；对于`application`来说，它是一个`server`，文档：
+`WSGI`除了`server`和`application`两个角色外，还有`middleware`中间件，`middleware`运行在`server`和`application`中间，同时具备`server`和`application`的角色，对于`server`来说，它是一个`application`，对于`application`来说，它是一个`server`：
 ```python
 from piglatin import piglatin
 
 class LatinIter:
-
-    """Transform iterated output to piglatin, if it's okay to do so
-
-    Note that the "okayness" can change until the application yields
-    its first non-empty bytestring, so 'transform_ok' has to be a mutable
-    truth value.
-    """
 
     def __init__(self, result, transform_ok):
         if hasattr(result, 'close'):
@@ -308,11 +301,7 @@ from django.core.handlers.wsgi import WSGIHandler
 
 
 def get_wsgi_application():
-    """
-    The public interface to Django's WSGI support. Return a WSGI callable.
-    Avoids making django.core.handlers.WSGIHandler a public API, in case the
-    internal WSGI implementation changes or moves in the future.
-    """
+
     django.setup(set_prefix=False)
     return WSGIHandler()
 ```
@@ -355,12 +344,6 @@ def run(addr, port, wsgi_handler, ipv6=False, threading=False, server_cls=WSGISe
         httpd_cls = server_cls
     httpd = httpd_cls(server_address, WSGIRequestHandler, ipv6=ipv6)
     if threading:
-        # ThreadingMixIn.daemon_threads indicates how threads will behave on an
-        # abrupt shutdown; like quitting the server by the user or restarting
-        # by the auto-reloader. True means the server will not wait for thread
-        # termination before it quits. This will make auto-reloader faster
-        # and will prevent the need to kill the server manually if a thread
-        # isn't terminating correctly.
         httpd.daemon_threads = True
     httpd.set_app(wsgi_handler)
     httpd.serve_forever()

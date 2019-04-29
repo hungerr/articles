@@ -155,7 +155,43 @@ Hello world!
 ```
 
 ### environ
-environ字典包含了一些CGI规范要求的数据，以及WSGI规范新增的数据，还可能包含一些操作系统的环境变量以及Web服务器相关的环境变量，具体见[environ](https://www.python.org/dev/peps/pep-3333/#environ-variables)。
+`environ`字典包含了一些`CGI`规范要求的数据，以及`WSGI`规范新增的数据，还可能包含一些操作系统的环境变量以及Web服务器相关的环境变量，具体见[environ](https://www.python.org/dev/peps/pep-3333/#environ-variables)。
+
+首先是CGI规范中要求的变量：
+
+- **REQUEST_METHOD**： HTTP请求方法，`GET`, `POST`等，不能为空
+
+- **SCRIPT_NAME**： HTTP请求path中的初始部分，用来确定对应哪一个`application`，当`application`对应于服务器的根，可以为空
+
+- **PATH_INFO**： path中剩余的部分，`application`要处理的部分，可以为空
+
+- **QUERY_STRING**： HTTP请求中的查询字符串，URL中?后面的内容
+
+- **CONTENT_TYPE**： HTTP headers中的`Content-Type`内容
+
+- **CONTENT_LENGTH**： HTTP headers中的`Content-Length`内容
+
+- **SERVER_NAME**和**SERVER_PORT**： 服务器名和端口，这两个值和前面的`SCRIPT_NAME`, `PATH_INFO`拼起来可以得到完整的URL路径
+
+- **SERVER_PROTOCOL**： HTTP协议版本，`HTTP/1.0`或`HTTP/1.1`
+
+- **HTTP_Variables**： 和HTTP请求中的headers对应，比如`User-Agent`写成`HTTP_USER_AGENT`的格式
+
+WSGI规范中还要求environ包含下列成员：
+
+- **wsgi.version**：一个元组(1, 0)，表示`WSGI`版本1.0
+
+- **wsgi.url_scheme**：http或者https
+
+- **wsgi.input**：一个类文件的输入流，`application`可以通过这个获取HTTP请求的body
+
+- **wsgi.errors**：一个输出流，当应用程序出错时，可以将错误信息写入这里
+
+- **wsgi.multithread**：当`application`对象可能被多个线程同时调用时，这个值需要为True
+
+- **wsgi.multiprocess**：当`application`对象可能被多个进程同时调用时，这个值需要为True
+
+- **wsgi.run_once**：当`server`期望`application`对象在进程的生命周期内只被调用一次时，该值为True
 
 我们可以使用python官方库`wsgiref`实现的`server`看一下`environ`的具体内容：
 ```python
@@ -283,11 +319,14 @@ class Latinator:
         return LatinIter(self.application(environ, start_latin), transform_ok)
 
 
-# Run foo_app under a Latinator's control, using the example CGI gateway
 from foo_app import foo_app
 run_with_cgi(Latinator(foo_app))
 ```
 可以看出，`Latinator`调用`foo_app`充当`server`角色，然后实例被`run_with_cgi`调用充当`application`角色。
+
+## uWSGI、wuwsgi与WSGI
+- **uwsgi**：与`WSGI`一样是一种通信协议，是uWSGI服务器的独占协议，与WSGI协议是两种东西，据说该协议是fastcgi协议的10倍快。
+- **uWSGI**：是一个`web server`，实现了WSGI协议、uwsgi协议、http协议等。
 
 ## Django中WSGI的实现
 每个Django项目中都有个wsgi.py文件，作为`application`是这样实现的：
@@ -334,7 +373,7 @@ class WSGIHandler(base.BaseHandler):
 ```
 `application`是一个定义了__call__方法的`WSGIHandler`类实例，首先加载中间件，然后根据`environ`生成请求`request`，根据请求生成响应`response`，`status`和`response_headers`由`start_response`处理，然后返回响应body。
 
-运行`runserver`命令时，django可以自身起一个`WSGI server`,[`django/core/servers/basehttp.py`](https://github.com/django/django/blob/master/django/core/servers/basehttp.py)文件：
+运行`runserver`命令进行测试时时，django可以自身起一个本地`WSGI server`,[`django/core/servers/basehttp.py`](https://github.com/django/django/blob/master/django/core/servers/basehttp.py)文件：
 ```python
 def run(addr, port, wsgi_handler, ipv6=False, threading=False, server_cls=WSGIServer):
     server_address = (addr, port)

@@ -254,9 +254,12 @@ if environ.get('QUERY_STRING'):
 我们知道HTTP的响应需要包含`status`，`headers`和`body`，所以在`application`对象将`body`作为返回值return之前，需要先调用`start_response`，将`status`和`headers`的内容返回给`server`，这同时也是告诉`server`，`application`对象要开始返回body了。
 
 ### 关系
-由此可见，`server`负责接收HTTP请求，根据请求数据组装`environ`，定义`start_response`函数，将这两个参数提供给`application`。`application`根据`environ`信息执行业务逻辑，将结果返回给`server`。响应中的`status`、`headers`由`start_response`函数返回给`server`，响应的`body`部分被包装成`iterable`作为`application`的返回值`，`server`将这些信息组装为HTTP响应返回给请求方。
+由此可见，`server`负责接收HTTP请求，根据请求数据组装`environ`，定义`start_response`函数，将这两个参数提供给`application`。`application`根据`environ`信息执行业务逻辑，将结果返回给`server`。响应中的`status`、`headers`由`start_response`函数返回给`server`，响应的`body`部分被包装成`iterable`作为`application`的返回值，`server`将这些信息组装为HTTP响应返回给请求方。
 
 在一个完整的部署中，`uWSGI`和`Gunicorn`是实现了`WSGI`的`server`，`Django`、`Flask`是实现了`WSGI`的`application`。两者结合起来其实就能实现访问功能。实际部署中还需要`Nginx`、`Apache`的原因是它有很多`uWSGI`没有支持的更好功能，比如处理静态资源，负载均衡等。`Nginx`、`Apache`一般都不会内置`WSGI`的支持，而是通过扩展来完成。比如`Apache`服务器，会通过扩展模块`mod_wsgi`来支持`WSGI`。`Apache`和`mod_wsgi`之间通过程序内部接口传递信息，`mod_wsgi`会实现`WSGI`的`server`端、进程管理以及对`application`的调用。`Nginx`上一般是用proxy的方式，用`Nginx`的协议将请求封装好，发送给应用服务器，比如`uWSGI`，`uWSGI`会实现`WSGI`的服务端、进程管理以及对`application`的调用。
+
+`uWSGI`与`Gunicorn`的比较，由[链接](https://blog.csdn.net/orangleliu/article/details/49275687)可知：
+> 在响应时间较短的应用中，uWSGI+django是个不错的组合(测试的结果来看有稍微那么一点优势)，但是如果有部分阻塞请求 Gunicorn+gevent+django有非常好的效率， 如果阻塞请求比较多的话，还是用tornado重写吧。
 
 ### Middleware
 `WSGI`除了`server`和`application`两个角色外，还有`middleware`中间件，`middleware`运行在`server`和`application`中间，同时具备`server`和`application`的角色，对于`server`来说，它是一个`application`，对于`application`来说，它是一个`server`：
@@ -325,8 +328,8 @@ run_with_cgi(Latinator(foo_app))
 可以看出，`Latinator`调用`foo_app`充当`server`角色，然后实例被`run_with_cgi`调用充当`application`角色。
 
 ## uWSGI、wuwsgi与WSGI
-- **uwsgi**：与`WSGI`一样是一种通信协议，是uWSGI服务器的独占协议，与WSGI协议是两种东西，据说该协议是fastcgi协议的10倍快。
-- **uWSGI**：是一个`web server`，实现了WSGI协议、uwsgi协议、http协议等。
+- **uwsgi**：与`WSGI`一样是一种通信协议，是`uWSGI`服务器的独占协议，据说该协议是`fastcgi`协议的10倍快。
+- **uWSGI**：是一个`web server`，实现了`WSGI`协议、`uwsgi`协议、`http`协议等。
 
 ## Django中WSGI的实现
 每个Django项目中都有个wsgi.py文件，作为`application`是这样实现的：
@@ -373,7 +376,7 @@ class WSGIHandler(base.BaseHandler):
 ```
 `application`是一个定义了__call__方法的`WSGIHandler`类实例，首先加载中间件，然后根据`environ`生成请求`request`，根据请求生成响应`response`，`status`和`response_headers`由`start_response`处理，然后返回响应body。
 
-运行`runserver`命令进行测试时时，django可以自身起一个本地`WSGI server`,[`django/core/servers/basehttp.py`](https://github.com/django/django/blob/master/django/core/servers/basehttp.py)文件：
+`Django`也自带了`WSGI server`，当然性能不够好，一般用于测试用途，运行`runserver`命令时，`Django`可以起一个本地`WSGI server`,[`django/core/servers/basehttp.py`](https://github.com/django/django/blob/master/django/core/servers/basehttp.py)文件：
 ```python
 def run(addr, port, wsgi_handler, ipv6=False, threading=False, server_cls=WSGIServer):
     server_address = (addr, port)

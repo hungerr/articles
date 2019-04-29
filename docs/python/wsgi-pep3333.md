@@ -160,37 +160,23 @@ Hello world!
 首先是CGI规范中要求的变量：
 
 - **REQUEST_METHOD**： HTTP请求方法，`GET`, `POST`等，不能为空
-
 - **SCRIPT_NAME**： HTTP请求path中的初始部分，用来确定对应哪一个`application`，当`application`对应于服务器的根，可以为空
-
 - **PATH_INFO**： path中剩余的部分，`application`要处理的部分，可以为空
-
 - **QUERY_STRING**： HTTP请求中的查询字符串，URL中?后面的内容
-
 - **CONTENT_TYPE**： HTTP headers中的`Content-Type`内容
-
 - **CONTENT_LENGTH**： HTTP headers中的`Content-Length`内容
-
-- **SERVER_NAME**和**SERVER_PORT**： 服务器名和端口，这两个值和前面的`SCRIPT_NAME`, `PATH_INFO`拼起来可以得到完整的URL路径
-
+- **SERVER_NAME**和**SERVER_PORT**： 服务器域名和端口，这两个值和前面的`SCRIPT_NAME`, `PATH_INFO`拼起来可以得到完整的URL路径
 - **SERVER_PROTOCOL**： HTTP协议版本，`HTTP/1.0`或`HTTP/1.1`
-
 - **HTTP_Variables**： 和HTTP请求中的headers对应，比如`User-Agent`写成`HTTP_USER_AGENT`的格式
 
 WSGI规范中还要求environ包含下列成员：
 
 - **wsgi.version**：一个元组(1, 0)，表示`WSGI`版本1.0
-
-- **wsgi.url_scheme**：http或者https
-
+- **wsgi.url_scheme**：`http`或者`https`
 - **wsgi.input**：一个类文件的输入流，`application`可以通过这个获取HTTP请求的body
-
 - **wsgi.errors**：一个输出流，当应用程序出错时，可以将错误信息写入这里
-
 - **wsgi.multithread**：当`application`对象可能被多个线程同时调用时，这个值需要为True
-
 - **wsgi.multiprocess**：当`application`对象可能被多个进程同时调用时，这个值需要为True
-
 - **wsgi.run_once**：当`server`期望`application`对象在进程的生命周期内只被调用一次时，该值为True
 
 我们可以使用python官方库`wsgiref`实现的`server`看一下`environ`的具体内容：
@@ -327,7 +313,7 @@ run_with_cgi(Latinator(foo_app))
 ```
 可以看出，`Latinator`调用`foo_app`充当`server`角色，然后实例被`run_with_cgi`调用充当`application`角色。
 
-## uWSGI、wuwsgi与WSGI
+## uWSGI、uwsgi与WSGI的区别
 - **uwsgi**：与`WSGI`一样是一种通信协议，是`uWSGI`服务器的独占协议，据说该协议是`fastcgi`协议的10倍快。
 - **uWSGI**：是一个`web server`，实现了`WSGI`协议、`uwsgi`协议、`http`协议等。
 

@@ -395,3 +395,7 @@ class WSGIServer(simple_server.WSGIServer):
         else:
             super().handle_error(request, client_address)
 ```
+### 参考链接
+- [pep-3333](https://www.python.org/dev/peps/pep-3333/)
+- [WSGI简介](https://segmentfault.com/a/1190000003069785)
+- [Python Web开发最难懂的WSGI协议,到底包含哪些内容](https://segmentfault.com/a/1190000011365430)

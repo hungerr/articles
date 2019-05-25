@@ -8,7 +8,7 @@
 
 ![](./images/lru-page-table.png)
 
-如上图所示，当CPU访问`虚拟页VP3`时，发现VP3并未缓存在物理内存之中，这称之为`缺页`，现在需要将VP3从磁盘复制到物理内存中，但在此之前，同时为了保持原有空间的大小，还要把一个物理内存中的页面调出至磁盘，需要在物理内存中选择一个`牺牲页`，将其复制到磁盘中，这称之为`交换`或者`页面调度`，图中的`牺牲页`为VP4。把哪个页面调出去可以达到调动尽量少的目的？我们需要一个算法。其实，达到这样一种情形的算法是最理想的了——每次调换出的页面是所有内存页面中最迟将被使用的——这可以最大限度的推迟页面调换，这种算法，被称为理想页面置换算法，这种算法很难完美达到。
+如上图所示，当CPU访问`虚拟页VP3`时，发现VP3并未缓存在物理内存之中，这称之为`缺页`，现在需要将VP3从磁盘复制到物理内存中，但在此之前，为了保持原有空间的大小，需要在物理内存中选择一个`牺牲页`，将其复制到磁盘中，这称之为`交换`或者`页面调度`，图中的`牺牲页`为VP4。把哪个页面调出去可以达到调动尽量少的目的？每次调换出的页面是所有内存页面中最迟将被使用的——这可以最大限度的推迟页面调换，这种算法，被称为理想页面置换算法，但这种算法很难完美达到。
 
 为了尽量减少与理想算法的差距，产生了各种精妙的算法，`LRU`算法便是其中一个。
 
@@ -79,7 +79,7 @@ Out[40]: (2, 2)
 
 `OrderedDict`有两个重要方法：
 - `popitem(last=True)`: 返回一个键值对，当last=True时，按照`LIFO`的顺序，否则按照`FIFO`的顺序。
-- `move_to_end(key, last=True)`: 将现有 key 移动到有序字典的任一端。 如果 last 为真值（默认）则将元素移至末尾；如果 last 为假值则将元素移至开头。
+- `move_to_end(key, last=True)`: 将现有 key 移动到有序字典的任一端。 如果 last 为True（默认）则将元素移至末尾；如果 last 为False则将元素移至开头。
 
 删除数据时，可以使用`popitem(last=False)`将开头最近未访问的键值对删除。访问或者设置数据时，使用`move_to_end(key, last=True)`将键值对移动至末尾。
 
@@ -108,3 +108,145 @@ class LRUCache:
         if key in self.lru:
             self.lru.move_to_end(key)
 ```
+
+## OrderedDict源码分析
+
+`OrderedDict`其实也是用哈希表与双向链表实现的：
+```python
+class OrderedDict(dict):
+    'Dictionary that remembers insertion order'
+    # An inherited dict maps keys to values.
+    # The inherited dict provides __getitem__, __len__, __contains__, and get.
+    # The remaining methods are order-aware.
+    # Big-O running times for all methods are the same as regular dictionaries.
+
+    # The internal self.__map dict maps keys to links in a doubly linked list.
+    # The circular doubly linked list starts and ends with a sentinel element.
+    # The sentinel element never gets deleted (this simplifies the algorithm).
+    # The sentinel is in self.__hardroot with a weakref proxy in self.__root.
+    # The prev links are weakref proxies (to prevent circular references).
+    # Individual links are kept alive by the hard reference in self.__map.
+    # Those hard references disappear when a key is deleted from an OrderedDict.
+
+    def __init__(*args, **kwds):
+        '''Initialize an ordered dictionary.  The signature is the same as
+        regular dictionaries.  Keyword argument order is preserved.
+        '''
+        if not args:
+            raise TypeError("descriptor '__init__' of 'OrderedDict' object "
+                            "needs an argument")
+        self, *args = args
+        if len(args) > 1:
+            raise TypeError('expected at most 1 arguments, got %d' % len(args))
+        try:
+            self.__root
+        except AttributeError:
+            self.__hardroot = _Link()
+            self.__root = root = _proxy(self.__hardroot)
+            root.prev = root.next = root
+            self.__map = {}
+        self.__update(*args, **kwds)
+
+    def __setitem__(self, key, value,
+                    dict_setitem=dict.__setitem__, proxy=_proxy, Link=_Link):
+        'od.__setitem__(i, y) <==> od[i]=y'
+        # Setting a new item creates a new link at the end of the linked list,
+        # and the inherited dictionary is updated with the new key/value pair.
+        if key not in self:
+            self.__map[key] = link = Link()
+            root = self.__root
+            last = root.prev
+            link.prev, link.next, link.key = last, root, key
+            last.next = link
+            root.prev = proxy(link)
+        dict_setitem(self, key, value)
+```
+由源码看出，`OrderedDict`使用`self.__map = {}`作为哈希表，其中保存了`key`与链表中的节点`Link()`的键值对，`self.__map[key] = link = Link()`:
+```python
+class _Link(object):
+    __slots__ = 'prev', 'next', 'key', '__weakref__'
+```
+节点`Link()`中保存了指向前一个节点的指针`prev`，指向后一个节点的指针`next`以及`key`值。
+
+而且，这里的链表是一个环形双向链表,`OrderedDict`使用一个哨兵元素`root`作为链表的**head**与**tail**：
+```python
+   self.__hardroot = _Link()
+   self.__root = root = _proxy(self.__hardroot)
+    root.prev = root.next = root
+```
+由`__setitem__`可知，向`OrderedDict`中添加新值时，链表变为如下的环形结构：
+```
+         next             next             next
+   root <----> new node1 <----> new node2 <----> root
+         prev             prev             prev
+```
+`root.next`为链表的第一个节点，`root.prev`为链表的最后一个节点。
+
+由于`OrderedDict`继承自`dict`，键值对是保存在`OrderedDict`自身中的，链表节点中只保存了`key`，并未保存`value`。
+
+如果我们要自己实现的话，无需如此复杂，可以将`value`置于节点之中，链表只需要实现插入最前端与移除最后端节点的功能即可：
+```python
+from _weakref import proxy as _proxy
+
+
+class Node:
+    __slots__ = ('prev', 'next', 'key', 'value', '__weakref__')
+
+
+class LRUCache:
+
+    def __init__(self, capacity: int):
+        self.__hardroot = Node()
+        self.__root = root = _proxy(self.__hardroot)
+        root.prev = root.next = root
+        self.__map = {}
+        self.capacity = capacity
+        
+    def get(self, key: int) -> int:
+        if key in self.__map:
+            self.move_to_head(key)
+            return self.__map[key].value
+        else:
+            return -1
+         
+    def put(self, key: int, value: int) -> None:
+        if key in self.__map:
+            node = self.__map[key]
+            node.value = value
+            self.move_to_head(key)
+        else:
+            node = Node()
+            node.key = key
+            node.value = value
+            self.__map[key] = node
+            self.add_head(node)
+            if len(self.__map) > self.capacity:
+                self.rm_tail()
+        
+    def move_to_head(self, key: int) -> None:
+        if key in self.__map:
+            node = self.__map[key]
+            node.prev.next = node.next
+            node.next.prev = node.prev
+            head = self.__root.next
+            self.__root.next = node
+            node.prev = self.__root
+            node.next = head
+            head.prev = node
+    
+    def add_head(self, node: Node) -> None:
+        head = self.__root.next
+        self.__root.next = node
+        node.prev = self.__root
+        node.next = head
+        head.prev = node
+    
+    def rm_tail(self) -> None:
+        tail = self.__root.prev
+        del self.__map[tail.key]
+        tail.prev.next = self.__root
+        self.__root.prev = tail.prev
+```
+
+### 参考链接
+- [LRU原理和Redis实现——一个今日头条的面试题](https://zhuanlan.zhihu.com/p/34133067)

@@ -248,5 +248,23 @@ class LRUCache:
         self.__root.prev = tail.prev
 ```
 
+## node-lru-cache
+在实际应用中，要实现`LRU`缓存算法，还要实现很多额外的功能。
+
+有一个用`javascript`实现的很好的[node-lru-cache](https://github.com/isaacs/node-lru-cache)包：
+```javascript
+var LRU = require("lru-cache")
+  , options = { max: 500
+              , length: function (n, key) { return n * 2 + key.length }
+              , dispose: function (key, n) { n.close() }
+              , maxAge: 1000 * 60 * 60 }
+  , cache = new LRU(options)
+  , otherCache = new LRU(50) // sets just the max size
+
+cache.set("key", "value")
+cache.get("key") // "value"
+```
+这个包不是用缓存`key`的数量来判断是否要启动`LRU`淘汰算法，而是使用保存的键值对的实际大小来判断。选项`options`中可以设置缓存所占空间的上限`max`，判断键值对所占空间的函数`length`，还可以设置键值对的过期时间`maxAge`等，有兴趣的可以看下。
+
 ### 参考链接
 - [LRU原理和Redis实现——一个今日头条的面试题](https://zhuanlan.zhihu.com/p/34133067)

@@ -16,3 +16,6 @@
 
 ### linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")
+
+### Redis
+- [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")

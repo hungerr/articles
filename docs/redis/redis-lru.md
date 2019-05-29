@@ -9,7 +9,7 @@
 
 
 ## LRU算法
-当需要从缓存中中淘汰数据时，我们希望能淘汰那些将来不可能再被使用的数据，保留那些将来还会频繁访问的数据，但最大的问题是缓存并不能预言未来。一个解决方法就是通过`LRU`进行预测：最近被频繁访问的数据将来被访问的可能性也越大。缓存中的数据一般会有这样的访问分布：一部分数据拥有绝大部分的访问量。当访问模式很少改变时，可以记录每个数据的最后一次访问时间，拥有最少空闲时间的数据可以被认为将来最有可能被访问到。
+当需要从缓存中淘汰数据时，我们希望能淘汰那些将来不可能再被使用的数据，保留那些将来还会频繁访问的数据，但最大的问题是缓存并不能预言未来。一个解决方法就是通过`LRU`进行预测：最近被频繁访问的数据将来被访问的可能性也越大。缓存中的数据一般会有这样的访问分布：一部分数据拥有绝大部分的访问量。当访问模式很少改变时，可以记录每个数据的最后一次访问时间，拥有最少空闲时间的数据可以被认为将来最有可能被访问到。
 
 举例如下的访问模式，A每5s访问一次，B每2s访问一次，C与D每10s访问一次，`|`代表计算空闲时间的截止点：
 ```
@@ -53,11 +53,11 @@
 ## 近似LRU算法
 我们知道，`LRU`算法需要一个双向链表来记录数据的最近被访问顺序，但是出于节省内存的考虑，`Redis`的`LRU`算法并非完整的实现。`Redis`并不会选择最久未被访问的键进行回收，相反它会尝试运行一个近似`LRU`的算法，通过对少量键进行取样，然后回收其中的最久未被访问的键。通过调整每次回收时的采样数量`maxmemory-samples`，可以实现调整算法的精度。
 
-根据`Redis`作者的说法，每个`Redis Object`可以挤出24 bits的空间，但24 bits是不够存储两个指针的,而24 bits存储低位时间戳是足够的，`Redis Object`以秒为单位存储了对象新建或者更新时的`unix time`，也就是`LRU clock`，溢出的话需要194天，而缓存的数据更新非常频繁，已经足够了。
+根据`Redis`作者的说法，每个`Redis Object`可以挤出24 bits的空间，但24 bits是不够存储两个指针的，而存储一个低位时间戳是足够的，`Redis Object`以秒为单位存储了对象新建或者更新时的`unix time`，也就是`LRU clock`，24 bits数据要溢出的话需要194天，而缓存的数据更新非常频繁，已经足够了。
 
 `Redis`的键空间是放在一个哈希表中的，要从所有的键中选出一个最久未被访问的键，需要另外一个数据结构存储这些源信息，这显然不划算。最初，`Redis`只是随机的选3个key，然后从中淘汰，后来算法改进到了`N个key`的策略，默认是5个。
 
-`Redis`3.0之后改善了算法的性能，会提供一个候选key的`pool`，里面默认有16个key，按照空闲时间排好序，新key只会在池不满或者空闲时间大于池里最小的，才能进池。
+`Redis`3.0之后又改善了算法的性能，会提供一个候选key的`pool`，里面默认有16个key，按照空闲时间排好序，新key只会在`pool`不满或者空闲时间大于`pool`里最小的，才能进池。
 
 真实`LRU`算法与近似`LRU`的算法可以通过下面的图像对比：
 ![](./images/redis_lru_comparison.png)
@@ -71,7 +71,7 @@
 ## LRU源码分析
 
 `Redis`中的键与值都是[`redisObject`](https://github.com/antirez/redis/blob/5.0/src/server.h#L605)对象：
-```
+```c
 typedef struct redisObject {
     unsigned type:4;
     unsigned encoding:4;
@@ -85,7 +85,7 @@ typedef struct redisObject {
 `unsigned`的低24 bits的`lru`记录了`redisObj`的LRU time。
 
 Redis命令访问缓存的数据时,均会调用函数[`lookupKey`](https://github.com/antirez/redis/blob/5.0/src/db.c#L55):
-```
+```c
 robj *lookupKey(redisDb *db, robj *key, int flags) {
     dictEntry *de = dictFind(db->dict,key->ptr);
     if (de) {
@@ -111,7 +111,7 @@ robj *lookupKey(redisDb *db, robj *key, int flags) {
 }
 ```
 该函数在策略为`LRU(非LFU)`时会更新对象的`lru`值, 设置为[`LRU_CLOCK()`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L78)值:
-```
+```c
 /* Return the LRU clock, based on the clock resolution. This is a time
  * in a reduced-bits format that can be used to set and check the
  * object->lru field of redisObject structures. */
@@ -134,10 +134,10 @@ unsigned int LRU_CLOCK(void) {
 }
 ```
 
-`LRU_CLOCK()`取决于`LRU_CLOCK_RESOLUTION(默认值1000)`，`LRU_CLOCK_RESOLUTION`代表了`LRU`算法的精度，即一个`LRU`的单位是多长。`server.hz`代表服务器刷新的频率，上述代码中如果服务器的时间更新精度值比`LRU`的精度值要小，`LRU_CLOCK()`直接使用服务器的时间，减小开销。
+`LRU_CLOCK()`取决于`LRU_CLOCK_RESOLUTION(默认值1000)`，`LRU_CLOCK_RESOLUTION`代表了`LRU`算法的精度，即一个`LRU`的单位是多长。`server.hz`代表服务器刷新的频率，如果服务器的时间更新精度值比`LRU`的精度值要小，`LRU_CLOCK()`直接使用服务器的时间，减小开销。
 
 `Redis`处理命令的入口是[`processCommand`](https://github.com/antirez/redis/blob/5.0/src/server.c#L2545):
-```
+```c
 int processCommand(client *c) {
 
     /* Handle the maxmemory directive.
@@ -166,7 +166,7 @@ int processCommand(client *c) {
 }
 ```
 只列出了释放内存空间的部分，[`freeMemoryIfNeededAndSafe`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L446)为释放内存的函数：
-```
+```c
 int freeMemoryIfNeeded(void) {
     /* By default replicas should ignore maxmemory
      * and just be masters exact copies. */
@@ -361,8 +361,8 @@ int freeMemoryIfNeededAndSafe(void) {
 
 几种淘汰策略`maxmemory_policy`就是在这个函数里面实现的。
 
-当采用`LRU`时，可以到，从0号数据库开始(默认16个数据库)，根据策略，选择`redisDb`的`dict(全部键)`或者`expires(有过期时间的键)`，用来更新候选键池子`pool`，`pool`更新策略[`evictionPoolPopulate`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L162):
-```
+当采用`LRU`时，可以看到，从0号数据库开始(默认16个)，根据不同的策略，选择`redisDb`的`dict(全部键)`或者`expires(有过期时间的键)`，用来更新候选键池子`pool`，`pool`更新策略是[`evictionPoolPopulate`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L162):
+```c
 void evictionPoolPopulate(int dbid, dict *sampledict, dict *keydict, struct evictionPoolEntry *pool) {
     int j, k, count;
     dictEntry *samples[server.maxmemory_samples];
@@ -464,7 +464,7 @@ void evictionPoolPopulate(int dbid, dict *sampledict, dict *keydict, struct evic
 `Redis`随机选择`maxmemory_samples`数量的key，然后计算这些key的空闲时间`idle time`，当满足条件时(比pool中的某些键的空闲时间还大)就可以进pool。pool更新之后，就淘汰pool中空闲时间最大的键。
 
 `estimateObjectIdleTime`用来计算`Redis`对象的空闲时间：
-```
+```c
 /* Given an object returns the min number of milliseconds the object was never
  * requested, using an approximated LRU algorithm. */
 unsigned long long estimateObjectIdleTime(robj *o) {

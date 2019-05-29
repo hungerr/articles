@@ -7,8 +7,20 @@
 
 另外，`Redis`也可以开启`LRU`功能来自动淘汰一些键值对。
 
-我们知道`LRU`算法一般会用一个双向链表记录键值对的顺序，但`Redis`出于空间考虑问题，并未使用一个全局双向链表管理所有的数据，而是使用了一种近似算法，就是随机取出若干个key，然后按照访问时间排序后，淘汰掉最不经常使用的。
 
+## LRU算法
+当需要从缓存中中淘汰数据时，我们希望能淘汰那些将来不可能再被使用的数据，保留那些将来还会频繁访问的数据，但最大的问题是缓存并不能预言未来。一个解决方法就是通过`LRU`进行预测：最近被频繁访问的数据将来被访问的可能性也越大。缓存中的数据一般会有这样的访问分布：一部分数据拥有绝大部分的访问量。当访问模式很少改变时，可以记录每个数据的最后一次访问时间，拥有最少空闲时间的数据可以被认为将来最有可能被访问到。
+
+举例如下的访问模式，A每5s访问一次，B每2s访问一次，C与D每10s访问一次，`|`代表计算空闲时间的截止点：
+```
+~~~~~A~~~~~A~~~~~A~~~~A~~~~~A~~~~~A~~|
+~~B~~B~~B~~B~~B~~B~~B~~B~~B~~B~~B~~B~|
+~~~~~~~~~~C~~~~~~~~~C~~~~~~~~~C~~~~~~|
+~~~~~D~~~~~~~~~~D~~~~~~~~~D~~~~~~~~~D|
+```
+可以看到，`LRU`对于A、B、C工作的很好，完美预测了将来被访问到的概率B>A>C，但对于D却预测了最少的空闲时间。
+
+但是，总体来说，`LRU`算法已经是一个性能足够好的算法了
 ## LRU配置参数
 `Redis`配置中和`LRU`有关的有三个：
 
@@ -39,11 +51,13 @@
 为键设置过期时间也是需要消耗内存的，所以使用`allkeys-lru`这种策略更加节省空间，因为这种策略下可以不为键设置过期时间。
 
 ## 近似LRU算法
-所以，出于节省内存的考虑，`Redis`的`LRU`算法并非完整的实现。`Redis`并不会选择最久未被访问的键进行回收，相反它会尝试运行一个近似`LRU`的算法，通过对少量键进行取样，然后回收其中的最久未被访问的键。
+我们知道，`LRU`算法需要一个双向链表来记录数据的最近被访问顺序，但是出于节省内存的考虑，`Redis`的`LRU`算法并非完整的实现。`Redis`并不会选择最久未被访问的键进行回收，相反它会尝试运行一个近似`LRU`的算法，通过对少量键进行取样，然后回收其中的最久未被访问的键。通过调整每次回收时的采样数量`maxmemory-samples`，可以实现调整算法的精度。
 
-`Redis`3.0之后改善了算法的性能，会提供一个候选回收键`pool`，使得更加近似真实`LRU`算法的行为。
+根据`Redis`作者的说法，每个`Redis Object`可以挤出24 bits的空间，但24 bits是不够存储两个指针的,而24 bits存储低位时间戳是足够的，`Redis Object`以秒为单位存储了对象新建或者更新时的`unix time`，也就是`LRU clock`，溢出的话需要194天，而缓存的数据更新非常频繁，已经足够了。
 
-通过调整每次回收时的采样数量`maxmemory-samples`，可以实现调整算法的精度。
+`Redis`的键空间是放在一个哈希表中的，要从所有的键中选出一个最久未被访问的键，需要另外一个数据结构存储这些源信息，这显然不划算。最初，`Redis`只是随机的选3个key，然后从中淘汰，后来算法改进到了`N个key`的策略，默认是5个。
+
+`Redis`3.0之后改善了算法的性能，会提供一个候选key的`pool`，里面默认有16个key，按照空闲时间排好序，新key只会在池不满或者空闲时间大于池里最小的，才能进池。
 
 真实`LRU`算法与近似`LRU`的算法可以通过下面的图像对比：
 ![](./images/redis_lru_comparison.png)
@@ -54,16 +68,9 @@
 
 在模拟实验的过程中，我们发现如果使用幂次分布的访问模式，真实`LRU`算法和近似`LRU`算法几乎没有差别。
 
-## LFU模式
+## LRU源码分析
 
-
-
-
-
-
-
-`server.h`
-[https://github.com/antirez/redis/blob/5.0/src/server.h#L605](https://github.com/antirez/redis/blob/5.0/src/server.h#L605)
+`Redis`中的键与值都是[`redisObject`](https://github.com/antirez/redis/blob/5.0/src/server.h#L605)对象：
 ```
 typedef struct redisObject {
     unsigned type:4;
@@ -75,10 +82,9 @@ typedef struct redisObject {
     void *ptr;
 } robj;
 ```
+`unsigned`的低24 bits的`lru`记录了`redisObj`的LRU time。
 
-`db.c`
-[https://github.com/antirez/redis/blob/5.0/src/db.c#L55](https://github.com/antirez/redis/blob/5.0/src/db.c#L55)
-
+Redis命令访问缓存的数据时,均会调用函数[`lookupKey`](https://github.com/antirez/redis/blob/5.0/src/db.c#L55):
 ```
 robj *lookupKey(redisDb *db, robj *key, int flags) {
     dictEntry *de = dictFind(db->dict,key->ptr);
@@ -104,98 +110,35 @@ robj *lookupKey(redisDb *db, robj *key, int flags) {
     }
 }
 ```
+该函数在策略为`LRU(非LFU)`时会更新对象的`lru`值, 设置为[`LRU_CLOCK()`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L78)值:
+```
+/* Return the LRU clock, based on the clock resolution. This is a time
+ * in a reduced-bits format that can be used to set and check the
+ * object->lru field of redisObject structures. */
+unsigned int getLRUClock(void) {
+    return (mstime()/LRU_CLOCK_RESOLUTION) & LRU_CLOCK_MAX;
+}
 
-`server.c`
-[https://github.com/antirez/redis/blob/5.0/src/server.c#L2545](https://github.com/antirez/redis/blob/5.0/src/server.c#L2545)
+/* This function is used to obtain the current LRU clock.
+ * If the current resolution is lower than the frequency we refresh the
+ * LRU clock (as it should be in production servers) we return the
+ * precomputed value, otherwise we need to resort to a system call. */
+unsigned int LRU_CLOCK(void) {
+    unsigned int lruclock;
+    if (1000/server.hz <= LRU_CLOCK_RESOLUTION) {
+        atomicGet(server.lruclock,lruclock);
+    } else {
+        lruclock = getLRUClock();
+    }
+    return lruclock;
+}
+```
+
+`LRU_CLOCK()`取决于`LRU_CLOCK_RESOLUTION(默认值1000)`，`LRU_CLOCK_RESOLUTION`代表了`LRU`算法的精度，即一个`LRU`的单位是多长。`server.hz`代表服务器刷新的频率，上述代码中如果服务器的时间更新精度值比`LRU`的精度值要小，`LRU_CLOCK()`直接使用服务器的时间，减小开销。
+
+`Redis`处理命令的入口是[`processCommand`](https://github.com/antirez/redis/blob/5.0/src/server.c#L2545):
 ```
 int processCommand(client *c) {
-    moduleCallCommandFilters(c);
-
-    /* The QUIT command is handled separately. Normal command procs will
-     * go through checking for replication and QUIT will cause trouble
-     * when FORCE_REPLICATION is enabled and would be implemented in
-     * a regular command proc. */
-    if (!strcasecmp(c->argv[0]->ptr,"quit")) {
-        addReply(c,shared.ok);
-        c->flags |= CLIENT_CLOSE_AFTER_REPLY;
-        return C_ERR;
-    }
-
-    /* Now lookup the command and check ASAP about trivial error conditions
-     * such as wrong arity, bad command name and so forth. */
-    c->cmd = c->lastcmd = lookupCommand(c->argv[0]->ptr);
-    if (!c->cmd) {
-        flagTransaction(c);
-        sds args = sdsempty();
-        int i;
-        for (i=1; i < c->argc && sdslen(args) < 128; i++)
-            args = sdscatprintf(args, "`%.*s`, ", 128-(int)sdslen(args), (char*)c->argv[i]->ptr);
-        addReplyErrorFormat(c,"unknown command `%s`, with args beginning with: %s",
-            (char*)c->argv[0]->ptr, args);
-        sdsfree(args);
-        return C_OK;
-    } else if ((c->cmd->arity > 0 && c->cmd->arity != c->argc) ||
-               (c->argc < -c->cmd->arity)) {
-        flagTransaction(c);
-        addReplyErrorFormat(c,"wrong number of arguments for '%s' command",
-            c->cmd->name);
-        return C_OK;
-    }
-
-    /* Check if the user is authenticated. This check is skipped in case
-     * the default user is flagged as "nopass" and is active. */
-    int auth_required = !(DefaultUser->flags & USER_FLAG_NOPASS) &&
-                        !c->authenticated;
-    if (auth_required || DefaultUser->flags & USER_FLAG_DISABLED) {
-        /* AUTH and HELLO are valid even in non authenticated state. */
-        if (c->cmd->proc != authCommand || c->cmd->proc == helloCommand) {
-            flagTransaction(c);
-            addReply(c,shared.noautherr);
-            return C_OK;
-        }
-    }
-
-    /* Check if the user can run this command according to the current
-     * ACLs. */
-    int acl_retval = ACLCheckCommandPerm(c);
-    if (acl_retval != ACL_OK) {
-        flagTransaction(c);
-        if (acl_retval == ACL_DENIED_CMD)
-            addReplyErrorFormat(c,
-                "-NOPERM this user has no permissions to run "
-                "the '%s' command or its subcommnad", c->cmd->name);
-        else
-            addReplyErrorFormat(c,
-                "-NOPERM this user has no permissions to access "
-                "one of the keys used as arguments");
-        return C_OK;
-    }
-
-    /* If cluster is enabled perform the cluster redirection here.
-     * However we don't perform the redirection if:
-     * 1) The sender of this command is our master.
-     * 2) The command has no key arguments. */
-    if (server.cluster_enabled &&
-        !(c->flags & CLIENT_MASTER) &&
-        !(c->flags & CLIENT_LUA &&
-          server.lua_caller->flags & CLIENT_MASTER) &&
-        !(c->cmd->getkeys_proc == NULL && c->cmd->firstkey == 0 &&
-          c->cmd->proc != execCommand))
-    {
-        int hashslot;
-        int error_code;
-        clusterNode *n = getNodeByQuery(c,c->cmd,c->argv,c->argc,
-                                        &hashslot,&error_code);
-        if (n == NULL || n != server.cluster->myself) {
-            if (c->cmd->proc == execCommand) {
-                discardTransaction(c);
-            } else {
-                flagTransaction(c);
-            }
-            clusterRedirectClient(c,n,hashslot,error_code);
-            return C_OK;
-        }
-    }
 
     /* Handle the maxmemory directive.
      *
@@ -220,122 +163,323 @@ int processCommand(client *c) {
             return C_OK;
         }
     }
+}
+```
+只列出了释放内存空间的部分，[`freeMemoryIfNeededAndSafe`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L446)为释放内存的函数：
+```
+int freeMemoryIfNeeded(void) {
+    /* By default replicas should ignore maxmemory
+     * and just be masters exact copies. */
+    if (server.masterhost && server.repl_slave_ignore_maxmemory) return C_OK;
 
-    /* Don't accept write commands if there are problems persisting on disk
-     * and if this is a master instance. */
-    int deny_write_type = writeCommandsDeniedByDiskError();
-    if (deny_write_type != DISK_ERROR_TYPE_NONE &&
-        server.masterhost == NULL &&
-        (c->cmd->flags & CMD_WRITE ||
-         c->cmd->proc == pingCommand))
-    {
-        flagTransaction(c);
-        if (deny_write_type == DISK_ERROR_TYPE_RDB)
-            addReply(c, shared.bgsaveerr);
-        else
-            addReplySds(c,
-                sdscatprintf(sdsempty(),
-                "-MISCONF Errors writing to the AOF file: %s\r\n",
-                strerror(server.aof_last_write_errno)));
+    size_t mem_reported, mem_tofree, mem_freed;
+    mstime_t latency, eviction_latency;
+    long long delta;
+    int slaves = listLength(server.slaves);
+
+    /* When clients are paused the dataset should be static not just from the
+     * POV of clients not being able to write, but also from the POV of
+     * expires and evictions of keys not being performed. */
+    if (clientsArePaused()) return C_OK;
+    if (getMaxmemoryState(&mem_reported,NULL,&mem_tofree,NULL) == C_OK)
         return C_OK;
-    }
 
-    /* Don't accept write commands if there are not enough good slaves and
-     * user configured the min-slaves-to-write option. */
-    if (server.masterhost == NULL &&
-        server.repl_min_slaves_to_write &&
-        server.repl_min_slaves_max_lag &&
-        c->cmd->flags & CMD_WRITE &&
-        server.repl_good_slaves_count < server.repl_min_slaves_to_write)
-    {
-        flagTransaction(c);
-        addReply(c, shared.noreplicaserr);
-        return C_OK;
-    }
+    mem_freed = 0;
 
-    /* Don't accept write commands if this is a read only slave. But
-     * accept write commands if this is our master. */
-    if (server.masterhost && server.repl_slave_ro &&
-        !(c->flags & CLIENT_MASTER) &&
-        c->cmd->flags & CMD_WRITE)
-    {
-        addReply(c, shared.roslaveerr);
-        return C_OK;
-    }
+    if (server.maxmemory_policy == MAXMEMORY_NO_EVICTION)
+        goto cant_free; /* We need to free memory, but policy forbids. */
 
-    /* Only allow a subset of commands in the context of Pub/Sub if the
-     * connection is in RESP2 mode. With RESP3 there are no limits. */
-    if ((c->flags & CLIENT_PUBSUB && c->resp == 2) &&
-        c->cmd->proc != pingCommand &&
-        c->cmd->proc != subscribeCommand &&
-        c->cmd->proc != unsubscribeCommand &&
-        c->cmd->proc != psubscribeCommand &&
-        c->cmd->proc != punsubscribeCommand) {
-        addReplyError(c,"only (P)SUBSCRIBE / (P)UNSUBSCRIBE / PING / QUIT allowed in this context");
-        return C_OK;
-    }
+    latencyStartMonitor(latency);
+    while (mem_freed < mem_tofree) {
+        int j, k, i, keys_freed = 0;
+        static unsigned int next_db = 0;
+        sds bestkey = NULL;
+        int bestdbid;
+        redisDb *db;
+        dict *dict;
+        dictEntry *de;
 
-    /* Only allow commands with flag "t", such as INFO, SLAVEOF and so on,
-     * when slave-serve-stale-data is no and we are a slave with a broken
-     * link with master. */
-    if (server.masterhost && server.repl_state != REPL_STATE_CONNECTED &&
-        server.repl_serve_stale_data == 0 &&
-        !(c->cmd->flags & CMD_STALE))
-    {
-        flagTransaction(c);
-        addReply(c, shared.masterdownerr);
-        return C_OK;
-    }
+        if (server.maxmemory_policy & (MAXMEMORY_FLAG_LRU|MAXMEMORY_FLAG_LFU) ||
+            server.maxmemory_policy == MAXMEMORY_VOLATILE_TTL)
+        {
+            struct evictionPoolEntry *pool = EvictionPoolLRU;
 
-    /* Loading DB? Return an error if the command has not the
-     * CMD_LOADING flag. */
-    if (server.loading && !(c->cmd->flags & CMD_LOADING)) {
-        addReply(c, shared.loadingerr);
-        return C_OK;
-    }
+            while(bestkey == NULL) {
+                unsigned long total_keys = 0, keys;
 
-    /* Lua script too slow? Only allow a limited number of commands. */
-    if (server.lua_timedout &&
-          c->cmd->proc != authCommand &&
-          c->cmd->proc != helloCommand &&
-          c->cmd->proc != replconfCommand &&
-        !(c->cmd->proc == shutdownCommand &&
-          c->argc == 2 &&
-          tolower(((char*)c->argv[1]->ptr)[0]) == 'n') &&
-        !(c->cmd->proc == scriptCommand &&
-          c->argc == 2 &&
-          tolower(((char*)c->argv[1]->ptr)[0]) == 'k'))
-    {
-        flagTransaction(c);
-        addReply(c, shared.slowscripterr);
-        return C_OK;
-    }
+                /* We don't want to make local-db choices when expiring keys,
+                 * so to start populate the eviction pool sampling keys from
+                 * every DB. */
+                for (i = 0; i < server.dbnum; i++) {
+                    db = server.db+i;
+                    dict = (server.maxmemory_policy & MAXMEMORY_FLAG_ALLKEYS) ?
+                            db->dict : db->expires;
+                    if ((keys = dictSize(dict)) != 0) {
+                        evictionPoolPopulate(i, dict, db->dict, pool);
+                        total_keys += keys;
+                    }
+                }
+                if (!total_keys) break; /* No keys to evict. */
 
-    /* Exec the command */
-    if (c->flags & CLIENT_MULTI &&
-        c->cmd->proc != execCommand && c->cmd->proc != discardCommand &&
-        c->cmd->proc != multiCommand && c->cmd->proc != watchCommand)
-    {
-        queueMultiCommand(c);
-        addReply(c,shared.queued);
-    } else {
-        call(c,CMD_CALL_FULL);
-        c->woff = server.master_repl_offset;
-        if (listLength(server.ready_keys))
-            handleClientsBlockedOnKeys();
+                /* Go backward from best to worst element to evict. */
+                for (k = EVPOOL_SIZE-1; k >= 0; k--) {
+                    if (pool[k].key == NULL) continue;
+                    bestdbid = pool[k].dbid;
+
+                    if (server.maxmemory_policy & MAXMEMORY_FLAG_ALLKEYS) {
+                        de = dictFind(server.db[pool[k].dbid].dict,
+                            pool[k].key);
+                    } else {
+                        de = dictFind(server.db[pool[k].dbid].expires,
+                            pool[k].key);
+                    }
+
+                    /* Remove the entry from the pool. */
+                    if (pool[k].key != pool[k].cached)
+                        sdsfree(pool[k].key);
+                    pool[k].key = NULL;
+                    pool[k].idle = 0;
+
+                    /* If the key exists, is our pick. Otherwise it is
+                     * a ghost and we need to try the next element. */
+                    if (de) {
+                        bestkey = dictGetKey(de);
+                        break;
+                    } else {
+                        /* Ghost... Iterate again. */
+                    }
+                }
+            }
+        }
+
+        /* volatile-random and allkeys-random policy */
+        else if (server.maxmemory_policy == MAXMEMORY_ALLKEYS_RANDOM ||
+                 server.maxmemory_policy == MAXMEMORY_VOLATILE_RANDOM)
+        {
+            /* When evicting a random key, we try to evict a key for
+             * each DB, so we use the static 'next_db' variable to
+             * incrementally visit all DBs. */
+            for (i = 0; i < server.dbnum; i++) {
+                j = (++next_db) % server.dbnum;
+                db = server.db+j;
+                dict = (server.maxmemory_policy == MAXMEMORY_ALLKEYS_RANDOM) ?
+                        db->dict : db->expires;
+                if (dictSize(dict) != 0) {
+                    de = dictGetRandomKey(dict);
+                    bestkey = dictGetKey(de);
+                    bestdbid = j;
+                    break;
+                }
+            }
+        }
+
+        /* Finally remove the selected key. */
+        if (bestkey) {
+            db = server.db+bestdbid;
+            robj *keyobj = createStringObject(bestkey,sdslen(bestkey));
+            propagateExpire(db,keyobj,server.lazyfree_lazy_eviction);
+            /* We compute the amount of memory freed by db*Delete() alone.
+             * It is possible that actually the memory needed to propagate
+             * the DEL in AOF and replication link is greater than the one
+             * we are freeing removing the key, but we can't account for
+             * that otherwise we would never exit the loop.
+             *
+             * AOF and Output buffer memory will be freed eventually so
+             * we only care about memory used by the key space. */
+            delta = (long long) zmalloc_used_memory();
+            latencyStartMonitor(eviction_latency);
+            if (server.lazyfree_lazy_eviction)
+                dbAsyncDelete(db,keyobj);
+            else
+                dbSyncDelete(db,keyobj);
+            latencyEndMonitor(eviction_latency);
+            latencyAddSampleIfNeeded("eviction-del",eviction_latency);
+            latencyRemoveNestedEvent(latency,eviction_latency);
+            delta -= (long long) zmalloc_used_memory();
+            mem_freed += delta;
+            server.stat_evictedkeys++;
+            notifyKeyspaceEvent(NOTIFY_EVICTED, "evicted",
+                keyobj, db->id);
+            decrRefCount(keyobj);
+            keys_freed++;
+
+            /* When the memory to free starts to be big enough, we may
+             * start spending so much time here that is impossible to
+             * deliver data to the slaves fast enough, so we force the
+             * transmission here inside the loop. */
+            if (slaves) flushSlavesOutputBuffers();
+
+            /* Normally our stop condition is the ability to release
+             * a fixed, pre-computed amount of memory. However when we
+             * are deleting objects in another thread, it's better to
+             * check, from time to time, if we already reached our target
+             * memory, since the "mem_freed" amount is computed only
+             * across the dbAsyncDelete() call, while the thread can
+             * release the memory all the time. */
+            if (server.lazyfree_lazy_eviction && !(keys_freed % 16)) {
+                if (getMaxmemoryState(NULL,NULL,NULL,NULL) == C_OK) {
+                    /* Let's satisfy our stop condition. */
+                    mem_freed = mem_tofree;
+                }
+            }
+        }
+
+        if (!keys_freed) {
+            latencyEndMonitor(latency);
+            latencyAddSampleIfNeeded("eviction-cycle",latency);
+            goto cant_free; /* nothing to free... */
+        }
     }
+    latencyEndMonitor(latency);
+    latencyAddSampleIfNeeded("eviction-cycle",latency);
     return C_OK;
+
+cant_free:
+    /* We are here if we are not able to reclaim memory. There is only one
+     * last thing we can try: check if the lazyfree thread has jobs in queue
+     * and wait... */
+    while(bioPendingJobsOfType(BIO_LAZY_FREE)) {
+        if (((mem_reported - zmalloc_used_memory()) + mem_freed) >= mem_tofree)
+            break;
+        usleep(1000);
+    }
+    return C_ERR;
+}
+
+/* This is a wrapper for freeMemoryIfNeeded() that only really calls the
+ * function if right now there are the conditions to do so safely:
+ *
+ * - There must be no script in timeout condition.
+ * - Nor we are loading data right now.
+ *
+ */
+int freeMemoryIfNeededAndSafe(void) {
+    if (server.lua_timedout || server.loading) return C_OK;
+    return freeMemoryIfNeeded();
 }
 ```
 
-`evict.c`
-[https://github.com/antirez/redis/blob/5.0/src/evict.c#L446](https://github.com/antirez/redis/blob/5.0/src/evict.c#L446)
+几种淘汰策略`maxmemory_policy`就是在这个函数里面实现的。
 
-dictGetRandomKey dict.c
-[https://github.com/antirez/redis/blob/5.0/src/dict.c#L610](https://github.com/antirez/redis/blob/5.0/src/dict.c#L610)
+当采用`LRU`时，可以到，从0号数据库开始(默认16个数据库)，根据策略，选择`redisDb`的`dict(全部键)`或者`expires(有过期时间的键)`，用来更新候选键池子`pool`，`pool`更新策略[`evictionPoolPopulate`](https://github.com/antirez/redis/blob/5.0/src/evict.c#L162):
+```
+void evictionPoolPopulate(int dbid, dict *sampledict, dict *keydict, struct evictionPoolEntry *pool) {
+    int j, k, count;
+    dictEntry *samples[server.maxmemory_samples];
 
-`evict.c`  LRU_CLOCK  estimateObjectIdleTime
-[https://github.com/antirez/redis/blob/5.0/src/evict.c#L78](https://github.com/antirez/redis/blob/5.0/src/evict.c#L78)
+    count = dictGetSomeKeys(sampledict,samples,server.maxmemory_samples);
+    for (j = 0; j < count; j++) {
+        unsigned long long idle;
+        sds key;
+        robj *o;
+        dictEntry *de;
 
-serverCron
-[https://github.com/antirez/redis/blob/5.0/src/server.c#L1091](https://github.com/antirez/redis/blob/5.0/src/server.c#L1091)
+        de = samples[j];
+        key = dictGetKey(de);
+
+        /* If the dictionary we are sampling from is not the main
+         * dictionary (but the expires one) we need to lookup the key
+         * again in the key dictionary to obtain the value object. */
+        if (server.maxmemory_policy != MAXMEMORY_VOLATILE_TTL) {
+            if (sampledict != keydict) de = dictFind(keydict, key);
+            o = dictGetVal(de);
+        }
+
+        /* Calculate the idle time according to the policy. This is called
+         * idle just because the code initially handled LRU, but is in fact
+         * just a score where an higher score means better candidate. */
+        if (server.maxmemory_policy & MAXMEMORY_FLAG_LRU) {
+            idle = estimateObjectIdleTime(o);
+        } else if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
+            /* When we use an LRU policy, we sort the keys by idle time
+             * so that we expire keys starting from greater idle time.
+             * However when the policy is an LFU one, we have a frequency
+             * estimation, and we want to evict keys with lower frequency
+             * first. So inside the pool we put objects using the inverted
+             * frequency subtracting the actual frequency to the maximum
+             * frequency of 255. */
+            idle = 255-LFUDecrAndReturn(o);
+        } else if (server.maxmemory_policy == MAXMEMORY_VOLATILE_TTL) {
+            /* In this case the sooner the expire the better. */
+            idle = ULLONG_MAX - (long)dictGetVal(de);
+        } else {
+            serverPanic("Unknown eviction policy in evictionPoolPopulate()");
+        }
+
+        /* Insert the element inside the pool.
+         * First, find the first empty bucket or the first populated
+         * bucket that has an idle time smaller than our idle time. */
+        k = 0;
+        while (k < EVPOOL_SIZE &&
+               pool[k].key &&
+               pool[k].idle < idle) k++;
+        if (k == 0 && pool[EVPOOL_SIZE-1].key != NULL) {
+            /* Can't insert if the element is < the worst element we have
+             * and there are no empty buckets. */
+            continue;
+        } else if (k < EVPOOL_SIZE && pool[k].key == NULL) {
+            /* Inserting into empty position. No setup needed before insert. */
+        } else {
+            /* Inserting in the middle. Now k points to the first element
+             * greater than the element to insert.  */
+            if (pool[EVPOOL_SIZE-1].key == NULL) {
+                /* Free space on the right? Insert at k shifting
+                 * all the elements from k to end to the right. */
+
+                /* Save SDS before overwriting. */
+                sds cached = pool[EVPOOL_SIZE-1].cached;
+                memmove(pool+k+1,pool+k,
+                    sizeof(pool[0])*(EVPOOL_SIZE-k-1));
+                pool[k].cached = cached;
+            } else {
+                /* No free space on right? Insert at k-1 */
+                k--;
+                /* Shift all elements on the left of k (included) to the
+                 * left, so we discard the element with smaller idle time. */
+                sds cached = pool[0].cached; /* Save SDS before overwriting. */
+                if (pool[0].key != pool[0].cached) sdsfree(pool[0].key);
+                memmove(pool,pool+1,sizeof(pool[0])*k);
+                pool[k].cached = cached;
+            }
+        }
+
+        /* Try to reuse the cached SDS string allocated in the pool entry,
+         * because allocating and deallocating this object is costly
+         * (according to the profiler, not my fantasy. Remember:
+         * premature optimizbla bla bla bla. */
+        int klen = sdslen(key);
+        if (klen > EVPOOL_CACHED_SDS_SIZE) {
+            pool[k].key = sdsdup(key);
+        } else {
+            memcpy(pool[k].cached,key,klen+1);
+            sdssetlen(pool[k].cached,klen);
+            pool[k].key = pool[k].cached;
+        }
+        pool[k].idle = idle;
+        pool[k].dbid = dbid;
+    }
+}
+```
+
+`Redis`随机选择`maxmemory_samples`数量的key，然后计算这些key的空闲时间`idle time`，当满足条件时(比pool中的某些键的空闲时间还大)就可以进pool。pool更新之后，就淘汰pool中空闲时间最大的键。
+
+`estimateObjectIdleTime`用来计算`Redis`对象的空闲时间：
+```
+/* Given an object returns the min number of milliseconds the object was never
+ * requested, using an approximated LRU algorithm. */
+unsigned long long estimateObjectIdleTime(robj *o) {
+    unsigned long long lruclock = LRU_CLOCK();
+    if (lruclock >= o->lru) {
+        return (lruclock - o->lru) * LRU_CLOCK_RESOLUTION;
+    } else {
+        return (lruclock + (LRU_CLOCK_MAX - o->lru)) *
+                    LRU_CLOCK_RESOLUTION;
+    }
+}
+```
+
+空闲时间基本就是就是对象的`lru`和全局的`LRU_CLOCK()`的差值乘以精度`LRU_CLOCK_RESOLUTION`，将秒转化为了毫秒。
+
+### 参考链接
+- [Random notes on improving the Redis LRU algorithm](http://antirez.com/news/109)
+- [Using Redis as an LRU cache](https://redis.io/topics/lru-cache)

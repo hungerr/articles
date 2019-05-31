@@ -19,3 +19,4 @@
 
 ### Redis
 - [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")
+- [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LRU")

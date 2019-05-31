@@ -1,6 +1,6 @@
 # Redis中的LFU算法
 
-在[Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")文中说到，`LRU`有这一样个缺陷，在如下情况下：
+在[Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")文中说到，`LRU`有一个缺陷，在如下情况下：
 ```
 ~~~~~A~~~~~A~~~~~A~~~~A~~~~~A~~~~~A~~|
 ~~B~~B~~B~~B~~B~~B~~B~~B~~B~~B~~B~~B~|

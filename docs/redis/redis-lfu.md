@@ -43,7 +43,7 @@ typedef struct redisObject {
       + Last decr time | LOG_C  |
       +----------------+--------+
 ```
-高16 bits用来记录最近一次计数器降低的时间，单位是分钟，低8 bits记录计数器数值`counter`。
+高16 bits用来记录最近一次计数器降低的时间`ldt`，单位是分钟，低8 bits记录计数器数值`counter`。
 
 ## LFU配置
 
@@ -146,7 +146,7 @@ unsigned long LFUTimeElapsed(unsigned long ldt) {
     return 65535-ldt+now;
 }
 ```
-具体是当前时间转化成分钟数后取低16 bits，然后计算与`ldt`的差值`now-ldt`。当`ldt`大于当前时间`now`时，默认为过了一个周期(16bits，最大65535)，取值`65535-ldt+now`。
+具体是当前时间转化成分钟数后取低16 bits，然后计算与`ldt`的差值`now-ldt`。当`ldt > now`时，默认为过了一个周期(16 bits，最大65535)，取值`65535-ldt+now`。
 
 然后用差值与配置`lfu_decay_time`相除，`LFUTimeElapsed(ldt) / server.lfu_decay_time`，已过去n个`lfu_decay_time`，则将`counter`减少n，`counter - num_periods`。
 
@@ -166,7 +166,7 @@ uint8_t LFULogIncr(uint8_t counter) {
     return counter;
 }
 ```
-`counter`并不是简单的访问一次就+1，而是采用了一个0-1之间的p因子控制增长。`counter`最大值为255。取一个0-1之间的随机数r与p比较，当r<p时，才增加`counter`，这和比特币中控制产出的策略类似。p取决于当前`counter`值与`lfu_log_factor`因子，`counter`值与`lfu_log_factor`因子越大，p越小，r<p的概率也越小，`counter`增长的概率也就越小。增长情况如下：
+`counter`并不是简单的访问一次就+1，而是采用了一个0-1之间的p因子控制增长。`counter`最大值为255。取一个0-1之间的随机数r与p比较，当`r<p`时，才增加`counter`，这和比特币中控制产出的策略类似。p取决于当前`counter`值与`lfu_log_factor`因子，`counter`值与`lfu_log_factor`因子越大，p越小，`r<p`的概率也越小，`counter`增长的概率也就越小。增长情况如下：
 
 ```
 +--------+------------+------------+------------+------------+------------+

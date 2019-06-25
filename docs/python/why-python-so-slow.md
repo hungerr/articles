@@ -45,7 +45,7 @@ CPython创建变量时，它会分配内存，然后计算该变量的引用有�
 
 如果你有Web应用程序（比如Django），又在使用WSGI，那么针对Web应用程序的每个请求都是一个单独的Python解释器，所以每个请求只有一个锁。由于Python解释器启动缓慢，一些WSGI实现拥有“守护进程模式”，这可以让一个或多个Python进程为你保持活跃状态。
 
-其他Python运行时环境怎么样？
+**其他Python运行时环境怎么样？**
 
 PyPy有一个GIL，它通常比CPython快3倍。
 
@@ -79,7 +79,7 @@ JIT本身不会使执行变得更快，因为它仍然执行相同的字节码�
 
 PyPy有JIT，如上所述，其速度比CPython快得多。这篇性能基准测试文章作了更详细的介绍：[哪个Python版本的速度最快？](https://hackernoon.com/which-is-the-fastest-version-of-python-2ae7c61a6b2b)。
 
-那么，CPython为什么不使用JIT呢？
+**那么，CPython为什么不使用JIT呢？**
 
 JIT存在几个缺点：缺点之一是启动时间。CPython的启动时间已经比较慢了，PyPy的启动时间比CPython还要慢2倍至3倍。众所周知，Java虚拟机的启动速度很慢。.NET CLR通过系统开启时启动解决了这个问题，但CLR的开发人员还开发了操作系统，CLR在它上面运行。
 

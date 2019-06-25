@@ -1,5 +1,6 @@
 # 为啥 Python 运行速度这么慢？
-作者：Anthony Shaw 是 Python 软件基金会成员和 Apache 基金会成员
+
+**作者：Anthony Shaw** 是 Python 软件基金会成员和 Apache 基金会成员
 
 近来Python可谓人气骤升。这门编程语言用于开发运维（DevOps）、数据科学、网站开发和安全。
 
@@ -60,7 +61,7 @@ JavaScript没有GIL，但它也是单线程的，所以它不需要内存管理�
 
 我常听到这个观点，但觉得这过于简化了CPython的实际工作方式。如果你在终端上编写了python myscript.py，那么CPython会启动读取、分析、解析、编译、解释和执行代码的一长串操作。
 
-如果你对这个过程的机理颇感兴趣，我之前写过一篇文章：《6分钟内修改Python语言》（https://hackernoon.com/modifying-the-python-language-in-7-minutes-b94b0a99ce14）。
+如果你对这个过程的机理颇感兴趣，我之前写过一篇文章：[6分钟内修改Python语言](https://hackernoon.com/modifying-the-python-language-in-7-minutes-b94b0a99ce14)。
 
 这个过程的一个重要节点是创建.pyc文件；在编译阶段，字节码序列写入到Python 3中__pycache__/里面的一个文件或Python 2中的同一个目录。这不仅适用于你的脚本，还适用于导入的所有代码，包括第三方模块。
 
@@ -76,7 +77,7 @@ JIT本身不会使执行变得更快，因为它仍然执行相同的字节码�
 
 这就意味着当你的应用程序一次又一次地执行相同的操作时，运行速度可以显著加快。另外记住一点：Java和C#是强类型语言，因此优化器可以对代码做出多得多的假设。
 
-PyPy有JIT，如上所述，其速度比CPython快得多。这篇性能基准测试文章作了更详细的介绍：《哪个Python版本的速度最快？》（https://hackernoon.com/which-is-the-fastest-version-of-python-2ae7c61a6b2b）。
+PyPy有JIT，如上所述，其速度比CPython快得多。这篇性能基准测试文章作了更详细的介绍：[哪个Python版本的速度最快？](https://hackernoon.com/which-is-the-fastest-version-of-python-2ae7c61a6b2b)。
 
 那么，CPython为什么不使用JIT呢？
 
@@ -115,7 +116,7 @@ Python为你这么做这项工作，你永远看不到，也不需要操心。
 
 ![](images/640.webp)
 
-现在python.exe将在整个代码中使用Dtrace跟踪器。保罗•罗斯（Paul Ross）写了一篇关于Dtrace的杂谈（https://github.com/paulross/dtrace-py#the-lightning-talk）。你可以下载Python的DTrace启动文件（https://github.com/paulross/dtrace-py/tree/master/toolkit）来测量函数调用、执行时间、CPU时间、系统调用和各种好玩的指标。比如
+现在python.exe将在整个代码中使用Dtrace跟踪器。保罗•罗斯（Paul Ross）写了一篇关于Dtrace的[杂谈](https://github.com/paulross/dtrace-py#the-lightning-talk)。你可以下载Python的DTrace启动[文件](https://github.com/paulross/dtrace-py/tree/master/toolkit)来测量函数调用、执行时间、CPU时间、系统调用和各种好玩的指标。比如
 
 ![](images/641.webp)
 

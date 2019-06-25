@@ -4,6 +4,7 @@
 ## 目录
 ### python
 - [Python Web开发中的WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
+- [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "WSGI")
 
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")

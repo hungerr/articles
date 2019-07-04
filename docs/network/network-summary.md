@@ -40,7 +40,7 @@
 
 区分各类地址的最简单方法是看它的第一个十进制整数：
 
-![](images/tcp-ip-summary-4.png)
+![](images/tcp-ip-summary-4.jpg)
 
 需要再次指出的是，多接口主机具有多个IP地址，其中每个接口都对应一个IP地址。
 

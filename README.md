@@ -4,10 +4,11 @@
 ## 目录
 ### python
 - [Python Web开发中的WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
-- [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "WSGI")
+- [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "python so slow")
 
 ### 网络协议
-- [TCP/IP协议族概述](docs/network/tcp-ip-summary.md "WSGI")
+- [TCP/IP协议族概述](docs/network/tcp-ip-summary.md "tcp/ip")
+- [数据链路层概述](docs/network/data-link-summary.md "data link")
 
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")
@@ -23,4 +24,4 @@
 
 ### Redis
 - [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")
-- [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LRU")
+- [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LFU")

@@ -3,8 +3,8 @@
 [地址](https://www.cnblogs.com/linxiyue/ "博客；链接").
 ## 目录
 ### python
-- [Python Web开发中的WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
-- [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "python so slow")
+- [WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
+- [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "why python so slow")
 
 ### 网络协议
 - [TCP/IP协议族概述](docs/network/network-summary.md "tcp/ip")
@@ -15,6 +15,9 @@
 - [TCP连接建立终止及状态机](docs/network/tcp-fsm.md "TCP连接建立及终止")
 - [TCP的交互数据流与成块数据流](docs/network/tcp-data-trans.md "TCP的交互数据流与成块数据流")
 - [TCP超时与重传](docs/network/tcp-timeout-retrans.md "TCP超时与重传")
+
+### 深入了解计算机系统
+- [计算机系统漫游](docs/computersystems/computer-systems.md "计算机系统漫游")
 
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")

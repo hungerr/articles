@@ -24,7 +24,7 @@
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")
 - [Virtual Dom不一定比原生Dom操作快(转载)](docs/javascript/native-dom-vs-virtual-dom.md "Virtual Dom")
-- [HTTP1.0 HTTP1.1 HTTP2.0 主要特性对比(转载)](https://segmentfault.com/a/1190000013028798)
+- [HTTP1.0、HTTP1.1和HTTP2.0主要特性对比(转载)](https://segmentfault.com/a/1190000013028798)
 
 ### 算法
 - [基于比较的排序](docs/algorithm/sort.md "排序")

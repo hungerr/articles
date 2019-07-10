@@ -2,7 +2,7 @@
 链接
 [地址](https://www.cnblogs.com/linxiyue/ "博客；链接").
 ## 目录
-### python
+### Python
 - [WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
 - [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "why python so slow")
 
@@ -18,6 +18,8 @@
 
 ### 深入了解计算机系统
 - [计算机系统漫游](docs/computersystems/computer-systems.md "计算机系统漫游")
+- [异常控制流](docs/computersystems/ecf.md "异常控制流")
+- [进程与线程](docs/computersystems/process-thread.md "进程与线程")
 
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")
@@ -28,7 +30,7 @@
 - [基于比较的排序](docs/algorithm/sort.md "排序")
 - [LRU算法解析](docs/algorithm/lru.md "LRU")
 
-### linux
+### Linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")
 
 ### Redis

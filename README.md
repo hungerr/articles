@@ -31,6 +31,9 @@
 - [基于比较的排序](docs/algorithm/sort.md "排序")
 - [LRU算法解析](docs/algorithm/lru.md "LRU")
 
+### MySQL
+- [MySQL简介及语法](docs/algorithm/mysql-sql-lang.md "MySQL简介及语法")
+
 ### Linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")
 

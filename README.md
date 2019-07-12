@@ -20,6 +20,7 @@
 - [计算机系统漫游](docs/computersystems/computer-systems.md "计算机系统漫游")
 - [异常控制流](docs/computersystems/ecf.md "异常控制流")
 - [进程与线程](docs/computersystems/process-thread.md "进程与线程")
+- [虚拟内存](docs/computersystems/vm.md "虚拟内存")
 
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")

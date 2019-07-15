@@ -328,5 +328,209 @@ SELECT last_insert_id();
 
 指定默认值：DEFAULT
 
-### 更新表
+### 更新表ALTER TABLE
 
+添加列：
+```
+ALTER TABLE vendors 
+ADD vend_phone CHAR(20);
+```
+
+删除列：
+```
+ALTER TABLE Vendors 
+DROP COLUMN vend_phone;
+```
+
+添加外键：
+```
+ALTER TABLE orderitems 
+ADD CONSTRAINT fk_orderitems_orders 
+FOREIGN KEY (order_num) 
+REFERENCES orders (order_num); 
+```
+
+### 删除表DROP
+
+`DROP TABLE custom;`
+
+### 重命名
+
+`RENAME TABLE customers2 TO customers;`
+
+### 视图
+
+视图是虚拟的表，视图只包含动态检索数据的查询
+
+创建视图，视图必须唯一命名：
+```
+CREATE VIEW productcustomers AS 
+SELECT cust_name, cust_contact, prod_id 
+FROM customers, orders, orderitems 
+WHERE customers.cust_id = orders.cust_id 
+AND orderitems.order_num = orders.order_num;
+```
+查看创建视图的语句：
+```
+SHOW CREATE VIEW viewname;
+```
+删除视图：
+```
+DROP VIEW viewname;
+```
+先DROP再用CREATE：
+```
+CREATE OR REPLACE VIEW;
+```
+重新格式化查询数据：
+```
+CREATE VIEW vendorlocations AS 
+SELECT Concat( RTrim( vend_name), ' (', RTrim(vend_country), ')') AS vend_title 
+FROM vendors 
+ORDER BY vend_name;
+```
+过滤数据：
+```
+CREATE VIEW customeremaillist AS 
+SELECT cust_id, cust_name, cust_email 
+FROM customers 
+WHERE cust_email IS NOT NULL;
+```
+也可以计算字段。
+
+通常，视图是可以更新的，更新一个视图将更新基表。视图主要用于数据检索，更新很少。使用分组、联结、子查询、并、聚集函数、DISTINCT
+、导出计算列时不能更新。
+
+### 存储过程
+
+存储过程就是为以后的使用而保存的一条或多条MySQL语句的集合。可视为批文件。保证了数据的完整性。
+
+执行存储过程：
+```
+CALL productpricing(@ pricelow, 
+                    @pricehigh, 
+                    @priceaverage);
+```
+
+创建存储过程，参数放在()中，可以为空：
+```
+CREATE PROCEDURE productpricing() 
+BEGIN 
+    SELECT Avg( prod_ price) AS priceaverage 
+    FROM products; 
+END;
+```
+语句内使用了分隔符`;`，可以替代；
+```
+DELIMITER // 
+
+CREATE PROCEDURE productpricing() 
+BEGIN 
+    SELECT Avg( prod_ price) AS priceaverage 
+    FROM products; 
+END // 
+
+DELIMITER ;
+```
+删除存储过程：
+```
+DROP PROCEDURE productpricing;
+```
+使用变量：
+```
+CREATE PROCEDURE productpricing( 
+    OUT pl DECIMAL(8, 2), 
+    OUT ph DECIMAL(8, 2), 
+    OUT pa DECIMAL(8, 2) 
+) 
+BEGIN 
+    SELECT Min(prod_price) 
+    INTO pl 
+    FROM products; 
+    SELECT Max(prod_price) 
+    INTO ph 
+    FROM products; 
+    SELECT Avg(prod_price) 
+    INTO pa 
+    FROM products; 
+END;
+```
+此存储过程接收三个参数，MySQL支持IN(传递给存储过程)、OUT(从存储过程传出)、INOUT(对存储过程传入和传出)。SELECT用来检索值，然后保存到相应的变量(INTO指定)
+
+调用存储过程，存储：
+```
+CALL productpricing(@ pricelow, 
+                    @pricehigh, 
+                    @priceaverage);
+```
+MySQL变量都要以@开头。
+
+显示：
+```
+SELECT @priceaverage;
+SELECT @pricehigh, @pricelow, @priceaverage;
+```
+使用IN传递进参数：
+```
+CREATE PROCEDURE ordertotal( 
+    IN onumber INT, 
+    OUT ototal DECIMAL(8,2) 
+) 
+BEGIN 
+    SELECT Sum(item_price*quantity) 
+    FROM orderitems 
+    WHERE order_num = onumber 
+    INTO ototal; 
+END;
+```
+调用：
+```
+CALL ordertotal(20005, @total);
+SELECT @total;
+```
+智能存储：
+```
+-- Name: ordertotal 
+-- Parameters: onumber = order number 
+--             taxable = 0 if not taxable, 1 if taxable 
+--             ototal = order total variable 
+CREATE PROCEDURE ordertotal(
+    IN onumber INT, 
+    IN taxable BOOLEAN,
+    OUT ototal DECIMAL( 8, 2) 
+) COMMENT 'Obtain order total, optionally adding tax' BEGIN 
+
+    -- Declare variable for total 
+    DECLARE total DECIMAL( 8, 2); 
+    -- Declare tax percentage 
+    DECLARE taxrate INT DEFAULT 6; 
+
+    -- Get the order total 
+    SELECT Sum(item_price*quantity) 
+    FROM orderitems 
+    WHERE order_num = onumber 
+    INTO total; 
+
+    -- Is this taxable? 
+    IF taxable THEN 
+        -- Yes, so add taxrate to the total 
+        SELECT total+( total/ 100* taxrate) INTO total; 
+    END IF; 
+
+    -- And finally, save to out variable 
+    SELECT total INTO ototal; 
+
+END;
+```
+增加了注释(--)。DECLARE指定变量名和数据类型，定义了两个局部变量。IF检测条件。
+
+使用：
+```
+CALL ordertotal(20005, 0, @total); 
+SELECT @total;
+```
+检查存储过程：
+```
+SHOW CREATE PROCEDURE ordertotal;
+SHOW PROCEDURE STATUS LIKE 'ordertotal';
+```

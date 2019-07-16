@@ -328,8 +328,25 @@ SELECT last_insert_id();
 
 指定默认值：DEFAULT
 
+### 创建索引：
+```
+CREATE INDEX indexname 
+ON tablename (column [ASC| DESC], ...);
+```
+
 ### 更新表ALTER TABLE
 
+语法：
+```
+ALTER TABLE tablename 
+( 
+  ADD column datatype [NULL| NOT NULL] [CONSTRAINTS], 
+  CHANGE column columns datatype [NULL| NOT NULL] [CONSTRAINTS], 
+  DROP column, 
+  ... 
+);
+
+```
 添加列：
 ```
 ALTER TABLE vendors 
@@ -459,7 +476,7 @@ END;
 
 调用存储过程，存储：
 ```
-CALL productpricing(@ pricelow, 
+CALL productpricing(@pricelow, 
                     @pricehigh, 
                     @priceaverage);
 ```
@@ -497,11 +514,11 @@ SELECT @total;
 CREATE PROCEDURE ordertotal(
     IN onumber INT, 
     IN taxable BOOLEAN,
-    OUT ototal DECIMAL( 8, 2) 
+    OUT ototal DECIMAL(8, 2) 
 ) COMMENT 'Obtain order total, optionally adding tax' BEGIN 
 
     -- Declare variable for total 
-    DECLARE total DECIMAL( 8, 2); 
+    DECLARE total DECIMAL(8, 2); 
     -- Declare tax percentage 
     DECLARE taxrate INT DEFAULT 6; 
 
@@ -533,4 +550,219 @@ SELECT @total;
 ```
 SHOW CREATE PROCEDURE ordertotal;
 SHOW PROCEDURE STATUS LIKE 'ordertotal';
+```
+
+### 游标cursor
+
+MySQL检索操作返回一组称为结果集的行。有时候需要在结果集中前进或者后退一行，这是使用游标的原因。MySQL游标只能用于存储过程和函数。
+
+首先声明游标，只是定义要使用的SELECT语句，打开游标使用(执行SELECT语句)，取出检索各行，关闭游标。
+
+创建游标：
+```
+CREATE PROCEDURE processorders() 
+BEGIN 
+    DECLARE ordernumbers CURSOR 
+    FOR 
+    SELECT ordernum FROM orders; 
+END;
+```
+使用游标：
+```
+OPEN ordernumbers;
+```
+关闭游标：
+```
+CLOSE ordernumbers;
+```
+声明过的游标不需要再声明，关闭后重新打开即可。
+
+取出数据做处理：
+```
+CREATE PROCEDURE processorders() 
+BEGIN 
+
+    -- Declare local variables 
+    DECLARE done BOOLEAN DEFAULT 0; 
+    DECLARE o INT; 
+    DECLARE t DECIMAL(8, 2); 
+
+    -- Declare the cursor 
+    DECLARE ordernumbers CURSOR 
+    FOR 
+    SELECT order_num FROM orders; 
+
+    -- Declare continue handler 
+    DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done= 1; 
+
+    -- Create a table to store the results 
+    CREATE TABLE IF NOT EXISTS ordertotals (order_num INT, total DECIMAL(8, 2)); 
+
+    -- Open the cursor 
+    OPEN ordernumbers;
+ 
+    -- Loop through all rows
+    REPEAT 
+
+        -- Get order number 
+        FETCH ordernumbers INTO o; 
+
+        -- Get the total for this order 
+        CALL ordertotal(o, 1, t); 
+
+        -- Insert order and total into ordertotals 
+        INSERT INTO ordertotals(order_num, total) VALUES(o, t); 
+
+    -- End of loop 
+    UNTIL done END REPEAT; 
+
+    -- Close the cursor 
+    CLOSE ordernumbers; 
+
+END;
+```
+
+### 触发器
+
+可以使用触发器使某条语句在事件发生时自动执行。
+
+触发器可以响应语句：`DELETE`、`INSERT`、`UPDATE`
+
+创建触发器需要给出信息：唯一名称、表名、响应的活动，何时执行(之前或之后)：
+```
+CREATE TRIGGER newproduct AFTER INSERT ON products 
+FOR EACH ROW SELECT 'Product added';
+```
+触发器按每个表每个事件每次地定义，每个表每个事件每次只允许一次触发器。每个表最多支持6个触发器(三个响应事件之前之后)
+
+删除触发器：
+```
+DROP TRIGGER newproduct; 
+```
+INSERT触发器，可以引用一个NEW的虚拟表，访问被插入的行，BEFORE操作中，可以更新NEW中的值。对于AUTO_INCREMENT，NEW在INSERT执行之前包含0，之后包含新的自动生成值。
+```
+CREATE TRIGGER neworder AFTER INSERT ON orders FOR EACH ROW SELECT NEW.order_num;
+```
+BEFORE用于数据验证和净化
+
+DELETE触发器，可以引用OLD表，访问被删除的行。将被删除的订单存档：
+```
+CREATE TRIGGER deleteorder BEFORE DELETE ON orders 
+FOR EACH ROW 
+BEGIN 
+    INSERT INTO archive_orders(order_num, order_date, cust_id) VALUES(OLD.order_num, OLD.order_date, OLD.cust_id); 
+END;
+```
+使用BEFORE，若果不能存档，则DELETE操作将被放弃
+
+UPDATE触发器可以引用OLD和NEW，BEFORE中NEW可以被更新，OLD只读
+```
+CREATE TRIGGER updatevendor BEFORE UPDATE ON vendors 
+FOR EACH ROW SET NEW.vend_state = Upper(NEW.vend_state);
+```
+
+### 事务
+
+开始事务：
+```
+START TRANSACTION
+```
+回退：
+```
+ROLLBACK;
+```
+只能回退INSERT UPDATE DELETE语句，不能回退CREATE DROP
+
+提交：
+```
+COMMIT;
+```
+使用保留点：
+```
+SAVEPOINT delete1;
+ROLLBACK TO delete1;
+```
+默认MySQL行为自动提交所有的更改。改变：
+```
+SET autocommit= 0; 
+```
+
+### 字符集
+
+查询：
+```
+SHOW CHARACTER SET;
+SHOW COLLATION;
+SHOW VARIABLES LIKE 'character%'; 
+SHOW VARIABLES LIKE 'collation%';
+```
+创建，表：
+```
+CREATE TABLE mytable 
+( 
+    columnn1 INT, 
+    columnn2 VARCHAR( 10) 
+) DEFAULT CHARACTER SET hebrew COLLATE hebrew_general_ci;
+```
+只指定character时，使用字符集及其默认的校对
+
+单独设定列：
+```
+CREATE TABLE mytable 
+( 
+    columnn1 INT, 
+    columnn2 VARCHAR( 10), 
+    column3 VARCHAR( 10) CHARACTER SET latin1 COLLATE latin1_ general_ ci 
+)
+```
+排序：
+```
+SELECT * FROM customers 
+ORDER BY lastname, firstname COLLATE latin1_general_cs;
+```
+
+### 用户权限管理
+
+查看用户：
+```
+USE mysql; 
+SELECT user FROM user;
+```
+创建用户：
+```
+CREATE USER ben IDENTIFIED BY 'p@$$w0rd';
+```
+重命名用户：
+```
+RENAME USER ben TO bforta;
+```
+删除用户：
+```
+DROP USER bforta;
+```
+查看权限：
+```
+SHOW GRANTS FOR bforta;
+```
+设置权限，要给出权限、表或数据库、用户名：
+```
+GRANT SELECT,INSERT ON crashcourse.* TO beforta; 
+```
+撤销权限：
+```
+REVOKE SELECT ON crashcourse.* FROM beforta;. 
+```
+层次：
+ 
+- 整个服务器：GRANT ALL
+- 整个数据库： ON database.*
+- 特定表： ON database.table
+
+更改口令：
+```
+SET PASSWORD FOR bforta = Password('n3w p@$$w0rd'); 
+```
+设置自己的口令：
+```
+SET PASSWORD = Password(' n3w p@$$ w0rd');
 ```

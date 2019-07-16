@@ -24,6 +24,7 @@
 
 ### 前端
 - [有关this](docs/javascript/this.md "有关this")
+- [HTTPS原理](docs/javascript/https.md "HTTPS原理")
 - [Virtual Dom不一定比原生Dom操作快(转载)](docs/javascript/native-dom-vs-virtual-dom.md "Virtual Dom")
 - [HTTP1.0、HTTP1.1和HTTP2.0主要特性对比(转载)](https://segmentfault.com/a/1190000013028798)
 
@@ -32,7 +33,8 @@
 - [LRU算法解析](docs/algorithm/lru.md "LRU")
 
 ### MySQL
-- [MySQL简介及语法](docs/algorithm/mysql-sql-lang.md "MySQL简介及语法")
+- [MySQL简介及语法](docs/database/mysql-sql-lang.md "MySQL简介及语法")
+- [MySQL逻辑架构、并发控制与事务](docs/database/mysql-history.md "MySQL逻辑架构、并发控制与事务")
 
 ### Linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")

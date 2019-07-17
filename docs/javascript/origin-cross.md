@@ -242,4 +242,59 @@ img.src = "http://www.example.com/test?name=Nicholas";
 
 #### JSONP
 
+JSONP是JSON with padding的简写，是应用JSON的新方法。JSONP由两部分组成：回调函数和数据。回调函数名称一般在请求中指定，数据是传入回调函数的JSON数据：
+```
+function handleResponse(response) { 
+  alert(" You’ re at IP address " + response.ip + ", which is in " +response.city + ", " + response.region_name); 
+} 
 
+var script = document.createElement("script"); 
+script.src = "http://freegeoip.net/json/?callback=handleResponse"; 
+document.body.insertBefore(script, document.body.firstChild);
+```
+JSONP能够直接响应文本，支持双向通讯。两点不足是：从其它域中加载代码不安全，要确定JSONP请求是否失败并不容易。
+
+#### Comet
+Comet是一种从服务器向页面推送数据的技术。
+
+有两种实现Comet的方式：长轮询和流。
+
+长轮询：页面发起一个请求，服务器一直保持连接打开，直到有数据发送。发送完数据后，浏览器关闭连接，随即再发起新请求。使用XHR和setTimeout就能实现。
+
+HTTP流：浏览器向服务器发送一个请求，而服务器保持连接打开，然后周期性的向浏览器发送数据。
+
+所有服务器端语言都支持打印到输出缓存然后刷新（ 将输出缓存中的内容 一次性全部发送到客户端）的功能。 而这正是实现 HTTP 流的关键所在。
+
+通过侦听 readystatechange 事件及检测 readyState 的值是否为 3， 就可以利用 XHR 对象实现 HTTP 流。
+
+Comet连接很容易出错，为此又创建了两个新的接口。
+
+#### SSE
+SSE，服务器发送事件
+
+#### Web Socket
+WebSocket是一种通信协议，使用`ws://`（非加密）和`wss://`（加密）作为协议前缀。该协议不实行同源政策，只要服务器支持，就可以通过它进行跨源通信。
+```
+var socket = new WebSocket(" ws://www.example.com/server.php");
+```
+下面是一个例子，浏览器发出的WebSocket请求的头信息：
+```
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Version: 13
+Origin: http://example.com
+```
+上面代码中，有一个字段是Origin，表示该请求的请求源（origin），即发自哪个域名。
+
+正是因为有了Origin这个字段，所以WebSocket才没有实行同源政策。因为服务器可以根据这个字段，判断是否许可本次通信。如果该域名在白名单内，服务器就会做出如下回应。
+```
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: HSmrc0sMlYUkAGmm5OPpG2HaGWk=
+Sec-WebSocket-Protocol: chat
+```

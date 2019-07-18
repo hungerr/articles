@@ -4,6 +4,7 @@
 ## 目录
 ### Python
 - [WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
+- [装饰器与闭包](docs/python/closure-decorator.md "WSGI")
 - [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "why python so slow")
 
 ### 网络协议

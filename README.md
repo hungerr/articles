@@ -48,6 +48,7 @@
 - [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LFU")
 
 ###面试图谱
-- [MySQL面试题](docs/questions/mysql-question.md "MySQL面试题")
-- [Redis面试题](docs/questions/redis-question.md "Redis面试题")
-- [Python面试题](docs/questions/python-question.md "Python面试题")
+- [MySQL面试题](docs/interview/mysql-question.md "MySQL面试题")
+- [SQL练习题](docs/interview/python-question.md "SQL练习题")
+- [Redis面试题](docs/interview/redis-question.md "Redis面试题")
+- [Python面试题](docs/interview/python-question.md "Python面试题")

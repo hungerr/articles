@@ -307,11 +307,124 @@ SELECT *  FROM products
 ```
 这叫做延迟关联，使用了部分覆盖索引。
 
+上面提到的很多限制都是由于存储引擎API设计所导致的，目前的API设计不允许MySQL将过滤条件传到存储引擎层。如果MySQL在后续版本能够做到这一点，则可以把查询发送到数据上，而不是像现在这样只能把数据从存储引擎拉到服务器层，再根据查询条件过滤。在本书写作之际，MySQL5.6版本（未正式发布）包含了在存储引擎API上所做的一个重要的改进，其被称为**索引条件推送**（index condition pushdown）。这个特性将大大改善现在的查询执行方式，如此一来上面介绍的很多技巧也就不再需要了。
 
+#### 使用索引扫描做排序
 
+MySQL有两种方式可以生成有序的结果：通过**排序**操作；或者按**索引顺序扫描**；如果**EXPLAIN**出来的type列的值为**index**，则说明MySQL使用了索引扫描来做排序（不要和Extra列的Using index搞混淆了）。
 
+扫描索引本身是很快的，因为只需要从一条索引记录移动到紧接着的下一条记录。但如果索引不能覆盖查询所需的全部列，那就不得不每扫描一条索引记录就都回表查询一次对应的行。这基本上都是随机I/O，因此按索引顺序读取数据的速度通常要比顺序地全表扫描慢，尤其是在I/O密集型的工作负载时。
 
+MySQL可以使用同一个索引既满足排序，又用于查找行。因此，如果可能，设计索引时应该尽可能地同时满足这两种任务，这样是最好的。
 
+只有当索引的列顺序和ORDER BY子句的顺序完全一致，并且所有列的排序方向（倒序或正序）都一样时，MySQL才能够使用索引来对结果做排序。如果查询需要关联多张表，则只有当ORDER BY子句引用的字段全部为第一个表时，才能使用索引做排序。ORDER BY子句和查找型查询的限制是一样的：需要满足索引的最左前缀的要求；否则，MySQL都需要执行排序操作，而无法利用索引排序。
+
+有一种情况下ORDER BY子句可以不满足索引的最左前缀的要求，就是**前导列为常量**的时候。如果WHERE子句或者JOIN子句中对这些列指定了常量，就可以“弥补”索引的不足。
+
+创建一个索引：
+```
+CREATE TABLE rental ( 
+    ... 
+    PRIMARY KEY (rental_id), 
+    UNIQUE KEY rental_date (rental_date, inventory_id, customer_id), 
+    KEY idx_fk_inventory_id (inventory_id), 
+    KEY idx_fk_customer_id (customer_id), 
+    KEY idx_fk_staff_id (staff_id), 
+    ... 
+);
+```
+
+能使用索引排序的情况：
+
+使用常量，就可以从第二列开始排序：
+```
+WHERE rental_date = '2005-05-25' ORDER BY inventory_id DESC;
+```
+
+不能使用的情况：
+
+不同的排序方向：
+```
+WHERE rental_date = '2005-05-25' ORDER BY inventory_id DESC, customer_id ASC;
+```
+引用不在索引中的列staff_id：
+```
+... WHERE rental_date=' 2005-05-25' ORDER BY inventory_id， staff_id;
+```
+第一列是范围条件：
+```sql
+WHERE rental_date > '2005-05-25' ORDER BY inventory_id, customer_id;
+```
+多个等于条件，相当于范围：
+```sql
+WHERE rental_date='2005-05-25' AND inventory_id IN(1, 2) ORDER BY customer_id; 
+```
+
+如果需要按不同方向做排序，一个技巧是存储该列值的反转串或者相反数。
+
+#### 冗余和重复索引
+
+MySQL允许在相同列上创建多个索引，这叫做重复索引，通常没理由这么做，除非是创建不同类型的索引来满足查询需求。
+
+冗余索引：如果创建了索引（A，B），再创建索引（A）就是冗余索引，因为这只是前一个索引的前缀索引。
+
+大部分情况下不需要冗余索引，但某些覆盖索引包含很长的列时，需要冗余索引。
+
+增加新索引会导致INSERT、UPDATE、DELETE操作变慢。
+
+#### 索引和锁
+
+索引可以让查询锁定更少的行。InnoDB只有在访问行时才会加锁，所以索引可以减少锁的数量。
+
+### 实战
+
+现在需要看看哪些列拥有很多不同的取值，哪些列在WHERE子句中出现得最频繁。在有更多不同值的列上创建索引的选择性会更好。一般来说这样做都是对的。但有些列虽然选择性很低(比如性别)，但考虑到使用频率，还是建议作为前缀。
+
+诀窍在于如果某个查询限制性别，可以在查询条件中新增AND SEX IN('m','f')来使用索引。
+
+接下来需要考虑常见的WHERE组合。
+
+使用不频繁的列可以忽略。
+
+经常进行范围查询的列尽量放在最后面(比如age)，以便优化器使用尽可能多的索引列。
+
+大数据集排序尽量使用索引排序：
+```
+SELECT<cols> FROM profiles WHERE sex='M' ORDER BY rating LIMIT 10;
+```
+可以建立(sex,rating)的索引。
+
+另一个优化方式是使用延迟关联，先使用覆盖索引查询需要返回的主键，再根据主键返回需要的行：
+```
+SELECT<cols>
+FROM profiles INNER JOIN(
+    SELECT <primary key cols> 
+    FROM profiles
+    WHEREx.sex='M'
+    ORDER BY rating LIMIT100000,10
+    ) AS x USING(<primary key cols>);
+```
+
+### 更新索引统计信息
+
+查看索引：
+```
+SHOW INDEX FROM table_name;
+```
+
+### 减少索引和数据的碎片
+
+有三种数据碎片：行碎片，行间碎片，剩余空间碎片
+
+使用OPTIMIZE TABLE或者导出再导入的方式来重新整理数据。
+
+### 总结
+
+有三个原则：
+
+- 单行访问很慢。所以读取的块中能包含尽可能多所需要的行。
+- 按顺序访问范围数据很快
+- 覆盖索引查询很快，避免了大量的单行访问
 
 
  

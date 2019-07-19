@@ -47,7 +47,7 @@
 - [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")
 - [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LFU")
 
-###面试图谱
+### 面试图谱
 - [MySQL面试题](docs/interview/mysql-question.md "MySQL面试题")
 - [SQL练习题](docs/interview/python-question.md "SQL练习题")
 - [Redis面试题](docs/interview/redis-question.md "Redis面试题")

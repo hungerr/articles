@@ -30,22 +30,22 @@
 一般情况下，二级域名不同的网址是不能共享Cookie，但可以通过设置`document.domain`来共享Cookie。
 
 举例来说，A网页是`http://a.example.com/`，B网页是`http://b.example.com/`，那么只要设置相同的`document.domain`，两个网页就可以共享Cookie，设置：
-```
+```javascript
 document.domain = 'example.com';
 ```
 现在，A网页通过脚本设置一个 Cookie:
-```
+```javascript
 document.cookie = "name=value";
 ```
 B网页就可以读到这个 Cookie:
-```
+```javascript
 var shareCookie = document.cookie;
 ```
 另外，服务器也可以在设置Cookie的时候，指定Cookie的domain：
-```
+```javascript
 Set-Cookie: name=value; domain=.example.com
 ```
-设置为`.example.com.`时，对所有的子域都有效。有效）。 如果没有明确 设定，那么这个域会被认作来自设置 cookie 的那个域。
+设置为`.example.com.`时，对所有的子域都有效。 如果没有明确设定，那么这个域会被认作来自设置 cookie 的那个域。
 
 ### AJAX与跨域
 
@@ -164,7 +164,7 @@ CORS请求默认不发送凭证(Cookie、HTTP认证及客户端SSL证明等)。
 该字段是一个逗号分隔的字符串，指定浏览器CORS请求会额外发送的头信息字段，上例是`X-Custom-Header`。
 
 服务器收到"预检"请求以后，检查了`Origin`、`Access-Control-Request-Method`和`Access-Control-Request-Headers`字段以后，确认允许跨源请求，就可以做出回应。
-```
+```javascript
 HTTP/1.1 200 OK
 Date: Mon, 01 Dec 2008 01:15:39 GMT
 Server: Apache/2.0.61 (Unix)
@@ -206,7 +206,7 @@ Content-Type: text/plain
 一旦服务器通过了预检请求，以后每次浏览器正常的CORS请求，就都跟简单请求一样，会有一个`Origin`头信息字段。服务器的回应，也都会有一个`Access-Control-Allow-Origin`头信息字段。
 
 下面是预检请求之后，浏览器的正常CORS请求:
-```
+```javascript
 PUT /cors HTTP/1.1
 Origin: http://www.example.com
 Host: api.alice.com
@@ -231,7 +231,7 @@ User-Agent: Mozilla/5.0...
 #### 图像Ping
 
 使用`<img>`标签，图像是可以跨域的。图像Ping是与服务器进行简单、单向的跨域通讯的一种方式。请求的数据通过查询字符串，响应可以是任意内容，但通常是像素图或204响应。浏览器通过侦听load和error事件，能知道响应什么时候接收到。
-```
+```javascript
 var img = new Image(); 
 img.onload = img.onerror = function() { 
   alert(" Done!");
@@ -243,7 +243,7 @@ img.src = "http://www.example.com/test?name=Nicholas";
 #### JSONP
 
 JSONP是JSON with padding的简写，是应用JSON的新方法。JSONP由两部分组成：回调函数和数据。回调函数名称一般在请求中指定，数据是传入回调函数的JSON数据：
-```
+```javascript
 function handleResponse(response) { 
   alert(" You’ re at IP address " + response.ip + ", which is in " +response.city + ", " + response.region_name); 
 } 
@@ -274,11 +274,11 @@ SSE，服务器发送事件
 
 #### Web Socket
 WebSocket是一种通信协议，使用`ws://`（非加密）和`wss://`（加密）作为协议前缀。该协议不实行同源政策，只要服务器支持，就可以通过它进行跨源通信。
-```
+```javascript
 var socket = new WebSocket(" ws://www.example.com/server.php");
 ```
 下面是一个例子，浏览器发出的WebSocket请求的头信息：
-```
+```javascript
 GET /chat HTTP/1.1
 Host: server.example.com
 Upgrade: websocket
@@ -291,7 +291,7 @@ Origin: http://example.com
 上面代码中，有一个字段是Origin，表示该请求的请求源（origin），即发自哪个域名。
 
 正是因为有了Origin这个字段，所以WebSocket才没有实行同源政策。因为服务器可以根据这个字段，判断是否许可本次通信。如果该域名在白名单内，服务器就会做出如下回应。
-```
+```javascript
 HTTP/1.1 101 Switching Protocols
 Upgrade: websocket
 Connection: Upgrade

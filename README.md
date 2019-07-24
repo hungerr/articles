@@ -39,6 +39,7 @@
 - [MySQL逻辑架构、并发控制与事务](docs/database/mysql-history.md "MySQL逻辑架构、并发控制与事务")
 - [范式与数据类型优化](docs/database/schema-datatype.md "范式与数据类型优化")
 - [高性能索引](docs/database/mysql-index.md "高性能索引")
+- [查询性能优化](docs/database/mysql-query.md "查询性能优化")
 
 ### Linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")

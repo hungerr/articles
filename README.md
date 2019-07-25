@@ -47,6 +47,8 @@
 ### Redis
 - [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")
 - [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LFU")
+- [scan与keys](docs/redis/redis-scan-and-keys.md "scan与keys")
+- [SCAN命令实现有限保证的原理](docs/redis/redis-scan.md "SCAN命令实现有限保证的原理")
 
 ### 面试图谱
 - [MySQL面试题](docs/interview/mysql-question.md "MySQL面试题")

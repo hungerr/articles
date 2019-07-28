@@ -41,9 +41,9 @@ index = hash & d->ht[table].sizemask;
 
 字典rehash时会使用两个哈希表，首先为ht[1]分配空间，如果是扩展操作，ht[1]的大小为第一个大于等于2倍`ht[0].used`的2<sup>n</sup>，如果是收缩操作，ht[1]的大小为第一个大于等于`ht[0].used`的2<sup>n</sup>。然后将ht[0]的所有键值对rehash到ht[1]中，最后释放ht[0]，将ht[1]设置为ht[0]，新创建一个空白哈希表当做ht[1]。rehash不是一次完成的，而是分多次、渐进式地完成。
 
-举个例子，现在将一个`size`为4的哈希表`ht[0]`(sizemask为11,index = hash & 0b11)rehash至一个`size`为8的哈希表`ht[1]`(sizemask为111,index = hash & 0b111)。
+举个例子，现在将一个size为4的哈希表`ht[0]`(sizemask为11, index = hash & 0b11)rehash至一个size为8的哈希表`ht[1]`(sizemask为111, index = hash & 0b111)。
 
-ht[0]中处于index=0位置的key低两位为`00`，那么rehash至ht[1]时index取低三位可能为`000(0)`和`100(4)`。也就是ht[0]中bucket0中的元素rehash之后分散于ht[1]的bucket0与bucket4，以此类推，对应关系为：
+ht[0]中处于bucket0位置的key的哈希值低两位为`00`，那么rehash至ht[1]时index取低三位可能为`000(0)`和`100(4)`。也就是ht[0]中bucket0中的元素rehash之后分散于ht[1]的bucket0与bucket4，以此类推，对应关系为：
 
 ```
     ht[0]  ->  ht[1]
@@ -56,7 +56,7 @@ ht[0]中处于index=0位置的key低两位为`00`，那么rehash至ht[1]时index
 
 如果SCAN命令采取0->1->2->3的顺序进行遍历，就会出现如下问题：
 
-- 扩展操作中，如果返回游标1时正在进行rehash,ht[0]中的bucket0中的部分数据可能已经rehash到ht[1]中的bucket[0]或者bucket[4]，在ht[1]中从bucket1开始遍历，遍历至bucket4时，其中的元素已经在ht[0]中的bucket0中遍历过，这就了产生重复问题。
+- 扩展操作中，如果返回游标1时正在进行rehash，ht[0]中的bucket0中的部分数据可能已经rehash到ht[1]中的bucket[0]或者bucket[4]，在ht[1]中从bucket1开始遍历，遍历至bucket4时，其中的元素已经在ht[0]中的bucket0中遍历过，这就产生了重复问题。
 - 缩小操作中，当返回游标5，但缩小后哈希表的size只有4，如何重置游标？
 
 ### SCAN的遍历顺序
@@ -84,7 +84,7 @@ ht[0]中处于index=0位置的key低两位为`00`，那么rehash至ht[1]时index
 2) (empty list or set)
 ```
 
-可以看出顺序是`0->2->1->3`，这样是很难看出规律，转换成二进制观察一下：
+可以看出顺序是`0->2->1->3`，很难看出规律，转换成二进制观察一下：
 
 ```
 00 -> 10 -> 01 -> 11
@@ -141,17 +141,17 @@ v = rev(v);
       3    ->   3,7
 ```
 
-可以看出，当size由小变大时,所有原来的游标都能在大的哈希表中找到相应的位置,并且顺序一致,不会重复读取并且不会遗漏
+可以看出，当size由小变大时，所有原来的游标都能在大的哈希表中找到相应的位置，并且顺序一致，不会重复读取并且不会遗漏。
 
 当size由大变小的情况，假设size由8变为了4，分两种情况，一种是游标为`0,2,1,3`中的一种，此时继续读取，也不会遗漏和重复。
 
 但如果游标返回的不是这四种，例如返回了7，7&11之后变为了3，所以会从size为4的哈希表的bucket3开始继续遍历，而bucket3包含了size为8的哈希表中的bucket3与bucket7，所以会造成重复读取size为8的哈希表中的bucket3的情况。
 
-所以，redis里边rehash从小到大时，SCAN命令不会重复也不会遗漏。而从大到小时，有可能会造成重复但不会遗漏。
+所以，redis里rehash从小到大时，SCAN命令不会重复也不会遗漏。而从大到小时，有可能会造成重复但不会遗漏。
 
 当正在进行rehash时，游标计算过程：
 
-```
+```c
         /* Make sure t0 is the smaller and t1 is the bigger table */
         if (t0->size > t1->size) {
             t0 = &d->ht[1];
@@ -192,7 +192,7 @@ v = rev(v);
         } while (v & (m0 ^ m1));
 ```
 
-首先保证t0是较小的哈希表，先访遍历t0中游标所在的bucket，然后再遍历较大的t1。
+首先保证t0是较小的哈希表，先遍历t0中游标所在的bucket，然后再遍历较大的t1。
 
 取值过程基本相同，只是把`m0`换成了rehash之后的哈希表的`m1`，同时还加了一个判断条件:
 ```

@@ -57,3 +57,6 @@
 - [SQL练习题](docs/interview/sql-practice.md "SQL练习题")
 - [Redis面试题](docs/interview/redis-question.md "Redis面试题")
 - [Python面试题](docs/interview/python-question.md "Python面试题")
+
+### Tips
+- [tips](docs/tips/tips.md "Tips")

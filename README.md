@@ -46,8 +46,11 @@
 ### Linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")
 
+### 消息队列
+- [理解AMQP 0-9-1模型](docs/mq/amqp-0-9-1-model.md "AMQP 0-9-1 Model Explained")
+
 ### Redis
-- [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")
+
 - [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LFU")
 - [scan与keys](docs/redis/redis-scan-and-keys.md "scan与keys")
 - [SCAN命令实现有限保证的原理](docs/redis/redis-scan.md "SCAN命令实现有限保证的原理")

@@ -168,7 +168,7 @@ connection.close()
 
 `receive.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/receive.py))
 
-```
+```python
 #!/usr/bin/env python
 import pika
 
@@ -207,7 +207,7 @@ python send.py
 # => [x] Sent 'Hello World!'
 ```
 
-**成功了！**我们已经通过RabbitMQ发送第一条消息。你也许已经注意到了，`receive.py`程序并没有退出。它一直在准备获取消息，你可以通过`Ctrl-C`来中止它。
+成功了！我们已经通过RabbitMQ发送第一条消息。你也许已经注意到了，`receive.py`程序并没有退出。它一直在准备获取消息，你可以通过`Ctrl-C`来中止它。
 
 试下在新的终端中再次运行`send.py`。
 

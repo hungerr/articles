@@ -275,6 +275,16 @@ Example uses:
 
 主题交换机拥有非常广泛的用户案例。无论何时，当一个问题涉及到那些想要有针对性的选择需要接收消息的 多消费者/多应用（multiple consumers/applications） 的时候，主题交换机都可以被列入考虑范围。
 
+绑定队列和交换器的Topic模式(这个模式串其实就是声明绑定时候的路由键，和消息发布的路由键并非同一个)一般使用点号(dot，也就是’.’)分隔，例如`source.target.key`，绑定模式支持通配符：
+
+- 符号`#`匹配一个或者多个词，例如：`source.target.#`可以匹配`source.target.doge`、`source.target.doge.throwable`等等。
+- 符号`*`只能匹配一个词，例如：`source.target.*`可以匹配`source.target.doge`、`source.target.throwable`等等。
+
+对每一条消息，Topic交换器会遍历所有的绑定关系，检查消息指定的路由键是否匹配绑定关系中的路由键，如果匹配，则将消息推送到相应队列。
+
+<img src="./images/exchange-topic
+.png" alt="exchange topic" />
+
 使用示例：
 
 - 销售与特定地理位置相关的数据，比如销售点
@@ -315,11 +325,16 @@ will not be used to evaluate matches.
 
 有时消息的路由操作会涉及到多个属性，此时使用消息头就比用路由键更容易表达，头交换机（headers exchange）就是为此而生的。头交换机使用多个消息属性来代替路由键建立路由规则。通过判断消息头的值能否与指定的绑定相匹配来确立路由规则。
 
-我们可以绑定一个队列到头交换机上，并给他们之间的绑定使用多个用于匹配的头（header）。这个案例中，消息代理得从应用开发者那儿取到更多一段信息，换句话说，它需要考虑某条消息（message）是需要部分匹配还是全部匹配。上边说的“更多一段消息”就是"x-match"参数。当"x-match"设置为“any”时，消息头的任意一个值被匹配就可以满足条件，而当"x-match"设置为“all”的时候，就需要消息头的所有值都匹配成功。
+我们可以绑定一个队列到头交换机上，并给他们之间的绑定使用多个用于匹配的头（header）。这个案例中，消息代理得从应用开发者那儿取到更多一段信息，换句话说，它需要考虑某条消息（message）是需要部分匹配还是全部匹配。上边说的“更多一段消息”就是`x-match`参数。当`x-match`设置为`any`时，消息头的任意一个值被匹配就可以满足条件，而当`x-match`设置为`all`的时候，就需要消息头的所有值都匹配成功。
+
+Headers交换器是一种不常用的交换器，它使用多个属性进行路由，这些属性一般称为消息头，它不使用路由键进行消息路由。消息头(Message Headers)是消息属性(消息元数据)部分，因此，使用Headers交换器在建立队列和交换器的绑定关系的时候需要指定一组键值对，发送消息到Headers交换器时候，需要在消息属性中携带一组键值对作为消息头。Headers交换器也是忽略路由键的。
+
+<img src="./images/exchange-header
+.png" alt="exchange topic" />
 
 头交换机可以视为直连交换机的另一种表现形式。头交换机能够像直连交换机一样工作，不同之处在于头交换机的路由规则是建立在头属性值之上，而不是路由键。路由键必须是一个字符串，而头属性值则没有这个约束，它们甚至可以是整数或者哈希值（字典）等。
 
-## Queues
+## Queues队列
 
 [Queues](/queues.html) in the AMQP 0-9-1 model are very similar to queues in
 other message- and task-queueing systems: they store
@@ -344,14 +359,14 @@ with code 406 (`PRECONDITION_FAILED`) will be  raised.
 AMQP中的队列（queue）跟其他消息队列或任务队列中的队列是很相似的：它们存储着即将被应用消费掉的消息。队列跟交换机共享某些属性，但是队列也有一些另外的属性。
 
 - Name
-- Durable（当broker重启时，queue是否存在）
-- Exclusive（只被一个connection使用并且在connection关闭时queue被删除）
-- Auto-delete（当最后一个consumer取消订阅时queue被删除）
-- Arguments（一些broker使用它去实现message TTL之类的附加功能）
+- Durable：是否持久化，开启持久化意味着消息中间件代理重启后队列依然存在，否则队列会被删除
+- Exclusive：是否是独占的，开启特性只被一个connection使用并且在connection关闭时queue会被删除
+- Auto-delete：是否自动删除，开启自动删除特性意味着队列至少有一个消费者并且最后一个消费者解除订阅状态(一般是消费者对应的通道关闭)后队列会自动删除。
+- Arguments：队列参数，一般和消息中间件代理或者插件的特性相关，如消息的过期时间(Message TTL)和队列长度等。
 
 队列在声明（declare）后才能被使用。如果一个队列尚不存在，声明一个队列会创建它。如果声明的队列已经存在，并且属性完全相同，那么此次声明不会对原有队列产生任何影响。如果声明中的属性与已存在队列的属性有差异，那么一个错误代码为406的通道级异常就会被抛出。
 
-### Queue Names
+### Queue Names队列名称
 
 Applications may pick queue names or ask the broker to generate
 a name for them.  Queue names may be up to 255 bytes of UTF-8
@@ -385,7 +400,7 @@ messages will be recovered.
 
 持久化的队列并不会使得路由到它的消息也具有持久性。倘若消息代理挂掉了，重新启动，那么在重启的过程中持久化队列会被重新声明，无论怎样，只有经过持久化的消息才能被重新恢复。
 
-## Bindings
+## Bindings绑定
 
 Bindings are rules that exchanges use (among other things)
 to route messages to queues. To instruct an exchange E to
@@ -425,7 +440,7 @@ depending on message attributes the publisher has set.
 
 如果AMQP的消息无法路由到队列（例如，发送到的交换机没有绑定队列），消息会被就地销毁或者返还给发布者。如何处理取决于发布者设置的消息属性。
 
-## Consumers
+## Consumers消费者
 
 Storing messages in queues is useless unless applications
 can _[consume](/consumers.html)_ them. In the AMQP 0-9-1 Model, there
@@ -448,14 +463,14 @@ messages. Consumer tags are just strings.
 
 消息如果只是存储在队列里是没有任何用处的。被应用消费掉，消息的价值才能够体现。在AMQP 0-9-1 模型中，有两种途径可以达到此目的：
 
-- 将消息传送给它们（push API）
-- 按照需要拉取消息（pull API）
+- 将消息传送给它们（push API），代表方法是`basic.consume`
+- 按照需要拉取消息（pull API），代表方法是`basic.get`
 
 使用push API，应用（application）需要明确表示出它在某个特定队列里所感兴趣的，想要消费的消息。如是，我们可以说应用注册了一个消费者，或者说订阅了一个队列。一个队列可以注册多个消费者，也可以注册一个独享的消费者（当独享消费者存在时，其他消费者即被排除在外）。
 
-每个消费者（订阅者）都有一个叫做消费者标签的标识符。它可以被用来退订消息。消费者标签实际上是一个字符串。
+每个消费者（订阅者）都有一个叫做消费者标签(consumer tag)的标识符。它可以被用来退订消息。消费者标签实际上是一个字符串。
 
-### Message Acknowledgements
+### Message Acknowledgements消息确认
 
 [Consumer applications](/consumers.html) – that is, applications that receive and process
 messages – may occasionally fail to process individual
@@ -485,7 +500,7 @@ attempting redelivery.
 
 消费者应用（Consumer applications） - 用来接受和处理消息的应用 - 在处理消息的时候偶尔会失败或者有时会直接崩溃掉。而且网络原因也有可能引起各种问题。这就给我们出了个难题，AMQP代理在什么时候删除消息才是正确的？AMQP 0-9-1 规范给我们两种建议：
 
-- 当消息代理（broker）将消息发送给应用后立即删除。（使用AMQP方法：basic.deliver或basic.get-ok）
+- 当消息代理（broker）将消息发送给应用后立即删除。（使用AMQP方法：`basic.deliver`或`basic.get-ok`）
 - 待应用（application）发送一个确认回执（acknowledgement）后再删除消息。（使用AMQP方法：basic.ack）
 
 前者被称作自动确认模式（automatic acknowledgement model），后者被称作显式确认模式（explicit acknowledgement model）。在显式模式下，由消费者应用来选择什么时候发送确认回执（acknowledgement）。应用可以在收到消息后立即发送，或将未处理的消息存储后发送，或等到消息被处理完毕后再发送确认回执（例如，成功获取一个网页内容并将其存储之后）。
@@ -519,7 +534,7 @@ and <a href="">basic.nack extension</a> guides.
 
 在AMQP中，basic.reject方法用来执行拒绝消息的操作。但basic.reject有个限制：你不能使用它决绝多个带有确认回执（acknowledgements）的消息。但是如果你使用的是RabbitMQ，那么你可以使用被称作negative acknowledgements（也叫nacks）的AMQP 0-9-1扩展来解决这个问题。更多的信息请参考帮助页面。 
 
-### Prefetching Messages
+### Prefetching Messages预取消息
 
 For cases when multiple consumers share a queue, it is useful
 to be able to specify how many messages each consumer can be
@@ -536,7 +551,7 @@ not connection or size based prefetching.
 
 注意，RabbitMQ只支持通道级的预取计数，而不是连接级的或者基于大小的预取。
 
-## Message Attributes and Payload
+## Message Attributes and Payload消息属性
 
 Messages in the AMQP 0-9-1 model have _attributes_. Some
 attributes are so common that the AMQP 0-9-1 specification
@@ -813,6 +828,32 @@ AMQP 0-9-1 拥有众多的适用于各种流行语言和框架的客户端。其
 
 因为AMQP的主要目标之一就是实现交互性，所以对于开发者来讲，了解协议的操作方法而不是只停留在弄懂特定客户端的库就显得十分重要。这样一来，开发者使用不同类型的库与协议进行沟通时就会容易的多。
 
-### 参考
+## 理解
+
+### 关于Exchange、Queue和Binding
+
+理解RabbitMQ中的AMQP模型，其实从开发者的角度来看，最重要的是Exchange、Queue、Binding三者的关系，这里谈谈个人的见解。消息的发布第一站总是Exchange，从模型上看，消息发布无法直接发送到队列中。Exchange本身不存储消息，它在接收到消息之后，会基于路由规则也就是Binding，把消息路由到目标Queue中。从实际操作来看，声明路由规则总是在发布消息和消费消息之前，也就是一般步骤如下：
+
+- 1、声明Exchange。
+- 2、声明Queue。
+- 3、基于Exchange和Queue声明Binding，这个过程有可能自定义一个RoutingKey。
+- 4、通过Exchange消息发布，这个过程有可能使用到上一步定义的RoutingKey。
+- 5、通过Queue消费消息。
+
+我们最关注的两个阶段，消息发布和消息消费中，消息发布实际上只跟Exchange有关，而消息消费实际上只跟Queue有关。Binding实际上就是Exchange和Queue的契约关系，会直接影响消息发布阶段的消息路由。那么，路由失败一般是什么情况导致的？路由失败，其实就是消息已经发布到Exchange，而Exchange中从既有的Binding中无法找到存在的目标Queue用于传递消息副本(一般而言，很少人会发送消息到一个不存在的Exchange)。消息路由失败，从理解AMQP的模型来看，可以从根本上避免的，除非是消息发布者故意胡乱使用或者人为错误使用了未存在的RoutingKey、Exchange或者说是Binding关系而导致的。
+
+### 关于Exchange的类型
+
+AMQP-0-9-1模型中支持了四种交换器direct(单播)、fanout(广播)、topic(多播)、headers，实际上，从使用者角度来看，四种交换器的功能是可以相互取代的。例如可以使用fanout类型交换器实现广播，其实使用direct类型交换器也是可以实现广播的，只是对应的direct类型交换器需要通过多个路由键绑定到多个目标队列中。在面对生产环境的技术选型的时候，我们需要考虑性能、维护难度、合理性等角度去考虑选择什么类型的交换器，就上面的广播消息的例子，显然使用fanout类型交换器可以避免声明多个绑定关系，这样在性能、合理性上是更优的选择。
+
+### 关于负载均衡
+
+在AMQP-0-9-1模型中，负载均衡的实现是基于消费者而不是基于队列(准确来说应该是消息传递到队列的方式)。实际上，出现消息生产速度大大超过消费者的消费速度的时候，队列中有可能会出现消息积压。AMQP-0-9-1模型中没有提供基于队列负载均衡的特性，也就是出现消息生产速度大大超过消费者的消费速度时候，并不会把消息路由到多个队列中，而是通过预取消息(Prefetching Messages)的特性，确定消息者的消费能力，从而调整消息中间件代理推送消息到对应消费者的数量，这样就能够实现消费速度快的消费者能够消费更多的消息，减少产生有消费者处于饥饿状态和有消费者长期处于忙碌状态的问题。
+
+### 关于消息确认机制
+
+AMQP中提供的消息确认机制主要包括积极确认(一般叫ack，Acknowledgement)、消极确认(一般叫nack，Negative Acknowledgement)和拒绝(reject)。消息确认机制是保证消息不丢失的重要措施，当消费者接收到消息中间件代理推送的消息时候，需要主动通知消息中间件代理消息已经确认投递成功，然后消息中间件代理才会从队列中删除对应的消息。没有主动确认的消息就会变为”nack”状态，可以想象为暂存在队列的”nack区”中，这些消息不会投递到消费者，直到消费者重启后，”nack区”中的消息会重新变为”ready”状态，可以重新投递给消费者。
+
+## 参考
 
 - [AMQP 0-9-1 Model Explained](https://www.rabbitmq.com/tutorials/amqp-concepts.html)

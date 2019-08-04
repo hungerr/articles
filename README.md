@@ -1,7 +1,10 @@
 # 博客文集
+
 链接
-[地址](https://www.cnblogs.com/linxiyue/ "博客；链接").
+[地址](https://www.cnblogs.com/linxiyue/ "博客链接").
+
 ## 目录
+
 ### Python
 - [WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
 - [装饰器与闭包](docs/python/closure-decorator.md "WSGI")
@@ -48,12 +51,12 @@
 
 ### 消息队列
 - [理解AMQP 0-9-1模型](docs/mq/amqp-0-9-1-model.md "AMQP 0-9-1 Model Explained")
-- [RabbitMQ应用教程(一)Hello World](docs/mq/tutorial-one-python.md "RabbitMQ应用教程")
-- [RabbitMQ应用教程(二)工作队列](docs/mq/tutorial-two-python.md "RabbitMQ应用教程")
-- [RabbitMQ应用教程(三)发布/订阅](docs/mq/tutorial-three-python.md "RabbitMQ应用教程")
-- [RabbitMQ应用教程(四)路由](docs/mq/tutorial-four-python.md "RabbitMQ应用教程")
-- [RabbitMQ应用教程(五)主题交换机](docs/mq/tutorial-five-python.md "RabbitMQ应用教程")
-- [RabbitMQ应用教程(六)远程过程调用](docs/mq/tutorial-six-python.md "RabbitMQ应用教程")
+- [RabbitMQ教程(一)Hello World](docs/mq/tutorial-one-python.md "RabbitMQ教程")
+- [RabbitMQ教程(二)工作队列](docs/mq/tutorial-two-python.md "RabbitMQ教程")
+- [RabbitMQ教程(三)发布/订阅](docs/mq/tutorial-three-python.md "RabbitMQ教程")
+- [RabbitMQ教程(四)路由](docs/mq/tutorial-four-python.md "RabbitMQ教程")
+- [RabbitMQ教程(五)主题交换机](docs/mq/tutorial-five-python.md "RabbitMQ教程")
+- [RabbitMQ教程(六)远程过程调用](docs/mq/tutorial-six-python.md "RabbitMQ教程")
 
 ### Redis
 

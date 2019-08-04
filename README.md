@@ -48,9 +48,16 @@
 
 ### 消息队列
 - [理解AMQP 0-9-1模型](docs/mq/amqp-0-9-1-model.md "AMQP 0-9-1 Model Explained")
+- [RabbitMQ应用教程(一)Hello World](docs/mq/tutorial-one-python.md "RabbitMQ应用教程")
+- [RabbitMQ应用教程(二)工作队列](docs/mq/tutorial-two-python.md "RabbitMQ应用教程")
+- [RabbitMQ应用教程(三)发布/订阅](docs/mq/tutorial-three-python.md "RabbitMQ应用教程")
+- [RabbitMQ应用教程(四)路由](docs/mq/tutorial-four-python.md "RabbitMQ应用教程")
+- [RabbitMQ应用教程(五)主题交换机](docs/mq/tutorial-five-python.md "RabbitMQ应用教程")
+- [RabbitMQ应用教程(六)远程过程调用](docs/mq/tutorial-six-python.md "RabbitMQ应用教程")
 
 ### Redis
 
+- [Redis中的LRU算法](docs/redis/redis-lru.md "Redis-LRU")
 - [Redis中的LFU算法](docs/redis/redis-lfu.md "Redis-LFU")
 - [scan与keys](docs/redis/redis-scan-and-keys.md "scan与keys")
 - [SCAN命令实现有限保证的原理](docs/redis/redis-scan.md "SCAN命令实现有限保证的原理")

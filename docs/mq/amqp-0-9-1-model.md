@@ -1,7 +1,5 @@
 # AMQP 0-9-1 Model Explained
 
-## Overview
-
 本文提供了AMQP 0-9-1协议的一个概述，它是RabbitMQ所支持的协议之一。
 
 ## High-level Overview of AMQP 0-9-1 and the AMQP Model
@@ -12,20 +10,20 @@ AMQP 0-9-1 (Advanced Message Queuing Protocol) is a messaging
 protocol that enables conforming client applications to
 communicate with conforming messaging middleware brokers.
 
-AMQP 0-9-1（Advanced Message Queuing Protocol）是一个消息协议，它支持符合标准的客户端请求程序与符合标准的消息中间件代理进行通信。
+AMQP 0-9-1（Advanced Message Queuing Protocol）是一个消息协议。它支持符合要求的客户端应用（application）和消息中间件代理（messaging middleware broker）之间进行通信。
 
 ### Brokers and Their Role
 
 Messaging brokers receive messages from publishers
 (applications that publish them, also known as producers) and route them to consumers(applications that process them).
 
+消息代理（message brokers）从发布者（publishers）亦称生产者（producers）那儿接收消息，并根据既定的路由规则把接收到的消息发送给处理消息的消费者（consumers）。
+
 Since it is a network protocol, the publishers,
 consumers and the broker can all reside on
 different machines.
 
-消息代理接收来自publishers（发布消息的应用程序，同时也可以称之为producers）的消息并且将消息路由至consumers（处理消息的应用程序）。
-
-因为它是一个网络协议，publishers，consumers与broker可以存在于不同的机器上。
+由于AMQP是一个网络协议，所以这个过程中的发布者，消费者，消息代理 可以存在于不同的设备上。
 
 ### AMQP 0-9-1 Model in Brief
 
@@ -37,13 +35,7 @@ _bindings_. Then the broker either deliver messages to
 consumers subscribed to queues, or consumers
 fetch/pull messages from queues on demand.
 
-AMQP 0-9-1 Model的整体视图如下：
-
-消息被发布到exchanges，通常可将exchanges比作邮局或者邮箱
-
-exchanges将消息副本分发到queues，按照bindings中的规则
-
-AMQP brokers传递消息给与queues关联的consumers，或者consumers按照需求从queues拉取信息
+AAMQP 0-9-1的工作过程如下图：消息（message）被发布者（publisher）发送给交换机（exchange），交换机常常被比喻成邮局或者邮箱。然后交换机将收到的消息根据路由规则分发给绑定的队列（queue）。最后AMQP代理会将消息投递给订阅了此队列的消费者，或者消费者按照需求自行获取。
 
 <img src="./images/hello-world-example-routing.png" alt="Publish path from publisher to consumer via exchange and queue" />
 
@@ -98,11 +90,11 @@ Applications declare the AMQP 0-9-1 entities that they need,
 define necessary routing schemes and may choose to delete
 AMQP 0-9-1 entities when they are no longer used.
 
-AMQP 0-9-1是一个可编程的协议，AMQP实体与路由方案都在自身应用程序中被定义，而不是被broker管理员定义。因此，为申明queues，exchanges，定义它们之间的bindings，订阅queues等协议操作进行了规定。
+AMQP 0-9-1是一个可编程协议，某种意义上说AMQP的实体和路由规则是由应用本身定义的，而不是由消息代理定义。包括像声明队列和交换机，定义他们之间的绑定，订阅队列等等关于协议本身的操作。
 
-这给应用程序开发者很多自由空间但是也要求他们小心潜在的定义冲突。实际上定义冲突是很少见的并且通常表明是配置错误。
+这虽然能让开发人员自由发挥，但也需要他们注意潜在的定义冲突。当然这在实践中很少会发生，如果发生，会以配置错误（misconfiguration）的形式表现出来。
 
-应用程序申明他们需要的AMQP实体，定义需要的路由方案，并且可能选择删除AMQP实体在他们不再需要使用时。
+应用程序（Applications）声明AMQP实体，定义需要的路由方案，或者删除不再需要的AMQP实体。
 
 ## Exchanges and Exchange Types
 
@@ -112,7 +104,7 @@ more queues. The routing algorithm used depends on the
 _exchange type_ and rules called _bindings_.
 AMQP 0-9-1 brokers provide four exchange types:
 
-当消息被发送时exchanges是AMQP实体。exchanges会传递信息并且将它路由到0个或者多个queue中，路由算法是取决于exchange类型与bingding规则。AMQP 0-9-1 broker提供4个exchange类型:
+交换机是用来发送消息的AMQP实体。交换机拿到一个消息之后将它路由给一个或零个队列。它使用哪种路由算法是由交换机类型和被称作绑定（bindings）的规则所决定的。AMQP 0-9-1的代理提供了四种交换机:
 
 <table>
   <thead>
@@ -156,10 +148,10 @@ and use cases require exchanges to be durable.
 
  * Name
  * Durability（broker重启时exchanges是否survive）
- * Auto-delete（当所有queue完成使用后exchange被删除）
+ * Auto-delete（当所有与之绑定的消息队列都完成了对此交换机的使用后，删掉它）
  * Arguments（这些都是broker相关的）
 
-Exchanges可以是持久的也可以是短暂的。持久的exchanges可以在broker重启时存活而暂时性的exchanges则不可以（当broker重新在线时必须重新申明它们），并非所有的场景与使用情况都需要持久的exchanges。
+交换机可以有两个状态：持久（durable）、暂存（transient）。持久化的交换机会在消息代理（broker）重启后依旧存在，而暂存的交换机则不会（它们需要在代理再次上线后重新被声明）。然而并不是所有的应用场景都需要持久化的交换机。
 
 ### Default Exchange
 
@@ -180,9 +172,9 @@ other words, the default exchange makes it seem like it
 is possible to deliver messages directly to queues, even
 though that is not technically what is happening.
 
-default exchange是一个没有名称的（空字符串）被broker预先申明的direct exchange。它所拥有的一个特殊属性使它对于简单的应用程序很有作用：每个创建的queue会与它自动绑定，使用queue名称作为routing key。
+默认交换机（default exchange）实际上是一个由消息代理预先声明好的没有名字（名字为空字符串）的直连交换机（direct exchange）。它有一个特殊的属性使得它对于简单应用特别有用处：那就是每个新建队列（queue）都会自动绑定到默认交换机上，绑定的路由键（routing key）名称与队列名称相同。
 
-举例说，当你申明一个名称为“search-indexing-online”的queue时，AMQP broker使用“search-indexing-online”作为routing key将它绑定到default exchange。因此，一条被发布到default exchange并且routing key为"search-indexing-online"将被路由到名称为"search-indexing-online"的queue。换句话说，default exchange使直接传送消息到queue成为可能，即使从技术角度上而言，事实并不是这样。
+举个栗子：当你声明了一个名为"search-indexing-online"的队列，AMQP代理会自动将其绑定到默认交换机上，绑定（binding）的路由键名称也是为"search-indexing-online"。因此，当携带着名为"search-indexing-online"的路由键的消息被发送到默认交换机的时候，此消息会被默认交换机路由至名为"search-indexing-online"的队列中。换句话说，默认交换机看起来貌似能够直接将消息投递给队列，尽管技术上并没有做相关的操作。
 
 ### Direct Exchange
 
@@ -203,12 +195,14 @@ between consumers and not between queues.
 
 A direct exchange can be represented graphically as follows:
 
-direct exchange根据消息的routing key来传送消息。direct exchange是单一传播路由消息的最佳选择（尽管他们也可以用于多路传播路由），以下是它们的工作原理：
+直连型交换机（direct exchange）是根据消息携带的路由键（routing key）将消息投递给对应队列的。直连交换机用来处理消息的单播路由（unicast routing）（尽管它也可以处理多播路由）。下边介绍它是如何工作的：
 
  * 一个routing key为K的queue与exchange进行绑定
  * 当一条新的routing key为R的消息到达direct exchange时，exchange 将它路由至该queue如果K=R
 
-direct exchange经常用于在多个工作者（同一应用程序的多个实例）之间分配任务。当做这些的时候，重要的是明白在AMQP 0-9-1中，消息是在consumer间负载均衡，而不是在queue。direct exchange可以用图形方式表示如下：
+直连交换机经常用来循环分发任务给多个工作者（workers）。当这样做的时候，我们需要明白一点，在AMQP 0-9-1中，消息的负载均衡是发生在消费者（consumer）之间的，而不是队列（queue）之间。
+
+direct exchange可以用图形方式表示如下：
 
 <img src="./images/exchange-direct.png" alt="exchange delivering messages to  queues based on routing key" />
 
@@ -237,14 +231,14 @@ every queue bound to it, its use cases are quite similar:
 
 A fanout exchange can be represented graphically as follows:
 
-fanout exchange路由消息到所有的与其绑定的queue中，忽略routing key。如果N个queue被绑定到一个fanout exchange，当一条新消息被发布到exchange时，消息会被复制并且传送到这N个queue。fanout exchange是广播路由的最佳选择。
+扇型交换机（funout exchange）将消息路由给绑定到它身上的所有队列，而不理会绑定的路由键。如果N个队列绑定到某个扇型交换机上，当有消息发送给此扇型交换机时，交换机会将消息的拷贝分别发送给这所有的N个队列。扇型用来交换机处理消息的广播路由（broadcast routing）。
 
 因为一个fanout exchange传送消息的副本到每一个与其绑定的queue，它的使用情况很相似：
 
 - 大量的多用户在线（multi-player online MMO）游戏使用它更新排行榜或者其他的全体事件
 - 体育新闻网站使用fanout exchange向手机客户端实时发送比分更新
 - 分布式系统可以广播各种状态与配置更新
-- 群聊可以使用fanout exchange让消息在参与者之间传输（即使AMQP没有内在的概念，所以XMPP也许是一个更好地选择）
+- 在群聊的时候，它被用来分发消息给参与群聊的用户。（AMQP没有内置presence的概念，因此XMPP可能会是个更好的选择）
 
 一个fanout exchange图形化的表述如下：
 
@@ -277,18 +271,18 @@ Example uses:
 * Distributed architecture/OS-specific software builds or
   packaging where each builder can handle only one architecture or OS
 
-Topic exchange路由消息到一个或者多个queue，基于消息的routing key和queue与exchange之间的绑定模式的匹配。Topic exchange经常被用于实现各种发布/订阅模式的变化。Topic exchanges通常被用于多路广播路由消息。
+主题交换机（topic exchanges）通过对消息的路由键和队列到交换机的绑定模式之间的匹配，将消息路由给一个或多个队列。主题交换机经常用来实现各种分发/订阅模式及其变种。主题交换机通常用来实现消息的多播路由（multicast routing）。
 
-topic exchange有非常多的应用场景。当一个问题牵涉到多个consumer/应用程序，他们有选择的选择他们接收何种何种类型的消息。可以考虑使用topic exchange。
+主题交换机拥有非常广泛的用户案例。无论何时，当一个问题涉及到那些想要有针对性的选择需要接收消息的 多消费者/多应用（multiple consumers/applications） 的时候，主题交换机都可以被列入考虑范围。
 
 使用示例：
 
 - 销售与特定地理位置相关的数据，比如销售点
-- 由多个工作者完成的后台任务处理，每个都能够负责处理指定的任务
-- 库存价格更新（更新其他的财务数据）
+- 由多个工作者（workers）完成的后台任务，每个工作者负责处理某些特定的任务
+- 股票价格更新（以及其他类型的金融数据更新）
 - 包含分类与标签的新闻更新（例如只针对某一个特定的运动或团队）
-- 不同种类的云服务编制
-- 分布式结构/特定操作系统软件的构建与包装，每个处理者只能处理一个结构或者系统
+- 云端的不同种类服务的协调
+- 分布式架构/基于系统的软件封装，其中每个构建者仅能处理一个特定的架构或者系统。
 
 ### Headers Exchange
 
@@ -319,11 +313,11 @@ hash (dictionary) for example.
 Note that headers beginning with the string `x-`
 will not be used to evaluate matches.
 
-header exchange为在多个属性进行路由而设计的，这些属性更容易描述为消息头，而不是routing key。headers exchanges忽略routing key属性，相反用于路由的属性是从headers属性中获取的。如果消息头的值等于指定的绑定值，则认为消息是匹配的。
+有时消息的路由操作会涉及到多个属性，此时使用消息头就比用路由键更容易表达，头交换机（headers exchange）就是为此而生的。头交换机使用多个消息属性来代替路由键建立路由规则。通过判断消息头的值能否与指定的绑定相匹配来确立路由规则。
 
-可以使用多个header匹配将一个queue绑定到header exchange。在这种情况下，broker需要从应用程序开发者那边获取多条信息，也就是说，是否应该考虑任何headers匹配的消息，还是所有headers都匹配的消息？这就是所谓的“x-match”绑定参数。当“x-match”参数的值被设为“any”，只要一个匹配的header值就足够了。相反的，设置“x-match”的值为“all”需要所有的headers值匹配。
+我们可以绑定一个队列到头交换机上，并给他们之间的绑定使用多个用于匹配的头（header）。这个案例中，消息代理得从应用开发者那儿取到更多一段信息，换句话说，它需要考虑某条消息（message）是需要部分匹配还是全部匹配。上边说的“更多一段消息”就是"x-match"参数。当"x-match"设置为“any”时，消息头的任意一个值被匹配就可以满足条件，而当"x-match"设置为“all”的时候，就需要消息头的所有值都匹配成功。
 
-Headers exchanges被视为“direct exchanges on steroids”。因为他们依据headers值路由消息，他们可以被当做direct exchanges使用，routing key不必是一个字符串；举例来说它可以是一个整数或者一个hash（dictionary）
+头交换机可以视为直连交换机的另一种表现形式。头交换机能够像直连交换机一样工作，不同之处在于头交换机的路由规则是建立在头属性值之上，而不是路由键。路由键必须是一个字符串，而头属性值则没有这个约束，它们甚至可以是整数或者哈希值（字典）等。
 
 ## Queues
 
@@ -347,7 +341,7 @@ declaration. When the existing queue attributes are not the
 same as those in the declaration a channel-level exception
 with code 406 (`PRECONDITION_FAILED`) will be  raised.
 
-AMQP模型中的Queues相似余其他massage-和task-queueing系统中的queues：它们存储被应用程序消耗的消息。Queues与exchanges分享一些数据，但是也有一些其他的附加属性：
+AMQP中的队列（queue）跟其他消息队列或任务队列中的队列是很相似的：它们存储着即将被应用消费掉的消息。队列跟交换机共享某些属性，但是队列也有一些另外的属性。
 
 - Name
 - Durable（当broker重启时，queue是否存在）
@@ -355,7 +349,7 @@ AMQP模型中的Queues相似余其他massage-和task-queueing系统中的queues�
 - Auto-delete（当最后一个consumer取消订阅时queue被删除）
 - Arguments（一些broker使用它去实现message TTL之类的附加功能）
 
-queue必须在使用前被申明。如果它不存在的话申明一个queue将会创建一个queue。如果queue已经存在并且属性与申明的属性相同的情况下，申明无效。当现有的queue属性与什么的属性不相同时，一个错误码为406（先决条件失败）的channel-level异常被抛出。
+队列在声明（declare）后才能被使用。如果一个队列尚不存在，声明一个队列会创建它。如果声明的队列已经存在，并且属性完全相同，那么此次声明不会对原有队列产生任何影响。如果声明中的属性与已存在队列的属性有差异，那么一个错误代码为406的通道级异常就会被抛出。
 
 ### Queue Names
 
@@ -371,9 +365,9 @@ use by the broker. Attempts to declare a queue with a name that
 violates this rule will result in a channel-level exception
 with reply code 403 (`ACCESS_REFUSED`).
 
-应用程序可以选择queue名称或者请求broker重新为其生成一个名称。Queueu名称最多可达255字节。为了让AMQP broker为你生成一个唯一的queue名称，传递一个空字符串作为queue的名称参数。在相同的通道中，通过使用queue名称预期的空字符串，可以在随后的方法中获取相同的名称。这是有效的，因为channel记得最后的服务器生成的queue名称。
+队列的名字可以由应用（application）来取，也可以让消息代理（broker）直接生成一个。队列的名字可以是最多255字节的一个utf-8字符串。若希望AMQP消息代理生成队列名，需要给队列的name参数赋值一个空字符串：在同一个通道（channel）的后续的方法（method）中，我们可以使用空字符串来表示之前生成的队列名称。之所以之后的方法可以获取正确的队列名是因为通道可以默默地记住消息代理最后一次生成的队列名称。
 
-以“amq.”开头的queue是broker为内部使用而保留的。尝试使用违反此规则的queue名称将会导致错误码403的channel-level异常。
+以"amq."开始的队列名称被预留做消息代理内部使用。如果试图在队列声明时打破这一规则的话，一个通道级的403 (ACCESS_REFUSED)错误会被抛出。
 
 ### Queue Durability
 
@@ -387,9 +381,9 @@ and then brought back up, durable queue will be re-declared
 during broker startup, however, only _persistent_
 messages will be recovered.
 
-持久的queue被持久化于磁盘中因此broker重启后仍存在。非持久的queue是暂时的。并非所有的场景与使用情况都要求queue是持久的。
+持久化队列（Durable queues）会被存储在磁盘上，当消息代理（broker）重启的时候，它依旧存在。没有被持久化的队列称作暂存队列（Transient queues）。并不是所有的场景和案例都需要将队列持久化。
 
-queue的持久性不能让路由到queue中的消息持久化。如果broker被关闭然后重新启动，持久的queue将会在broker启动期间被重新申明，但是仅仅持久的消息会恢复。
+持久化的队列并不会使得路由到它的消息也具有持久性。倘若消息代理挂掉了，重新启动，那么在重启的过程中持久化队列会被重新声明，无论怎样，只有经过持久化的消息才能被重新恢复。
 
 ## Bindings
 
@@ -419,7 +413,7 @@ because there are no bindings for the exchange it was published
 to) it is either [dropped or returned to the publisher](/publishers.html#unroutable),
 depending on message attributes the publisher has set.
 
-bindings是exchanges用来路由消息到queues的规则。为了命令exchange E路由消息到 queue Q，Q必须绑定到E。Bindings可能有一个选择性的routing key属性，被某些类型的exchanges使用。routing key是为了选择被发布到exchange的消息，路由到绑定的queue中。换句话说，routing key的功能就像一个过滤器。
+绑定（Binding）是交换机（exchange）将消息（message）路由给队列（queue）所需遵循的规则。如果要指示交换机“E”将消息路由给队列“Q”，那么“Q”就需要与“E”进行绑定。绑定操作需要定义一个可选的路由键（routing key）属性给某些类型的交换机。路由键的意义在于从发送给交换机的众多消息中选择出某些消息，将其路由给绑定的队列。
 
 画一个类比：
 
@@ -427,9 +421,9 @@ bindings是exchanges用来路由消息到queues的规则。为了命令exchange 
 - Exchanges就像是JFK机场
 - Bindings是JFK到你目的地的路线。有0或者多条路线到达目的地
 
-有了间接层，就可以通过直接发布到queue来实现不可能或者很难实现的场景，并且减少应用程序开发者必须要做的某些重复工作。
+拥有了交换机这个中间层，很多由发布者直接到队列难以实现的路由方案能够得以实现，并且避免了应用开发者的许多重复劳动。
 
-如果AMQP消息不能路由到任何queue（例如，因为没有绑定到它被发布的exchange），它会被丢弃还是返回给publisher，取决于publisher设置的消息属性。
+如果AMQP的消息无法路由到队列（例如，发送到的交换机没有绑定队列），消息会被就地销毁或者返还给发布者。如何处理取决于发布者设置的消息属性。
 
 ## Consumers
 
@@ -452,12 +446,14 @@ Each consumer (subscription) has an identifier called a
 _consumer tag_. It can be used to unsubscribe from
 messages. Consumer tags are just strings.
 
-存储消息到queue中是无用的，除非应用程序可以消耗它们。在AMQP模型中，应用程序有两种方法这么做：
+消息如果只是存储在队列里是没有任何用处的。被应用消费掉，消息的价值才能够体现。在AMQP 0-9-1 模型中，有两种途径可以达到此目的：
 
 - 将消息传送给它们（push API）
 - 按照需要拉取消息（pull API）
 
-使用“push API”，应用程序必须表现出对从特定queue中消耗消息的兴趣，当它们这么做时，我们说它们注册了一个消费者或者简单的订阅了一个queue。一个queue可能同时有多个consumer或者注册一个独占的消费者（当它在消耗消息时排除队列中所有其他的consumer）
+使用push API，应用（application）需要明确表示出它在某个特定队列里所感兴趣的，想要消费的消息。如是，我们可以说应用注册了一个消费者，或者说订阅了一个队列。一个队列可以注册多个消费者，也可以注册一个独享的消费者（当独享消费者存在时，其他消费者即被排除在外）。
+
+每个消费者（订阅者）都有一个叫做消费者标签的标识符。它可以被用来退订消息。消费者标签实际上是一个字符串。
 
 ### Message Acknowledgements
 
@@ -487,14 +483,14 @@ if none are available at the time, the broker will wait until
 at least one consumer is registered for the same queue before
 attempting redelivery.
 
-消费者应用程序，接收处理消息的应用程序可能偶尔在处理消息时失败或者崩溃。这也可能是网络问题所导致的。这引发了一个问题：AMQP何时从queue中移除消息？AMQP 0-9-1提供了两个选择：
+消费者应用（Consumer applications） - 用来接受和处理消息的应用 - 在处理消息的时候偶尔会失败或者有时会直接崩溃掉。而且网络原因也有可能引起各种问题。这就给我们出了个难题，AMQP代理在什么时候删除消息才是正确的？AMQP 0-9-1 规范给我们两种建议：
 
-- broker发送消息给应用程序之后（使用basic.deliver或者basic.get-ok AMQP方法）
-- 应用程序发送确认之后（使用basci.ack AMQP方法）
+- 当消息代理（broker）将消息发送给应用后立即删除。（使用AMQP方法：basic.deliver或basic.get-ok）
+- 待应用（application）发送一个确认回执（acknowledgement）后再删除消息。（使用AMQP方法：basic.ack）
 
-前一种选择被称作自动确认模型，而后者被称为显示确认模型。使用显示确认模型，应用程序可以选择何时发送确认，可以在接收消息后，或者在处理之前将其持久化到数据存储之后，或者在完全处理完成消息之后（例如成功拉取一个web页面，处理并且将其存储到持久化的数据存储中）。
+前者被称作自动确认模式（automatic acknowledgement model），后者被称作显式确认模式（explicit acknowledgement model）。在显式模式下，由消费者应用来选择什么时候发送确认回执（acknowledgement）。应用可以在收到消息后立即发送，或将未处理的消息存储后发送，或等到消息被处理完毕后再发送确认回执（例如，成功获取一个网页内容并将其存储之后）。
 
-如果一个consumer没有发送确认就死亡，AMQP broker将其重新发送到另外一个consumer，或者如果此时没有任何consumer，broker在尝试重新发送之前，会等待到至少有一个consumer注册到相同的queue
+如果一个消费者在尚未发送确认回执的情况下挂掉了，那AMQP代理会将消息重新投递给另一个消费者。如果当时没有可用的消费者了，消息代理会死等下一个注册到此队列的消费者，然后再次尝试投递。
 
 ### Rejecting Messages
 
@@ -508,7 +504,7 @@ consumer on a queue, make sure you do not create infinite
 message delivery loops by rejecting and requeueing a message
 from the same consumer over and over again.
 
-当一个consumer接收到一条消息，处理消息可能成功也可能失败。一个应用程序通过拒绝消息可以向broker表明消息处理失败（或者不能在那时候完成）。当拒绝一条消息时，应用程序可以请求broker丢弃或者重新将其加入queue中。当queue中仅有一个consumer时，确保你没有重复的通过拒绝并且将消息重新加入queue中来创建无限的消息传递循环。
+当一个消费者接收到某条消息后，处理过程有可能成功，有可能失败。应用可以向消息代理表明，本条消息由于“拒绝消息（Rejecting Messages）”的原因处理失败了（或者未能在此时完成）。当拒绝某条消息时，应用可以告诉消息代理如何处理这条消息——销毁它或者重新放入队列。当此队列只有一个消费者时，请确认不要由于拒绝消息并且选择了重新放入队列的行为而引起消息在同一个消费者身上无限循环的情况发生。
 
 ### Negative Acknowledgements
 
@@ -521,7 +517,7 @@ extension known as _negative acknowledgements_ or _nacks_. For
 more information, please refer to the [Confirmations](/confirms.html)
 and <a href="">basic.nack extension</a> guides.
 
-使用AMQP的basic.reject方法拒绝消息。basci.reject方法有一个限制：就像你执行确认操作一样不可能同时拒绝多条消息。然而，如果你使用RabbitMQ，有一个解决方法。RabbitMQ提供了被称为是否定确认或者nacks的AMQP 0-9-1扩展。获取更多信息，请参照the help page. 
+在AMQP中，basic.reject方法用来执行拒绝消息的操作。但basic.reject有个限制：你不能使用它决绝多个带有确认回执（acknowledgements）的消息。但是如果你使用的是RabbitMQ，那么你可以使用被称作negative acknowledgements（也叫nacks）的AMQP 0-9-1扩展来解决这个问题。更多的信息请参考帮助页面。 
 
 ### Prefetching Messages
 
@@ -536,9 +532,9 @@ minute because of the nature of the work it is doing.
 Note that RabbitMQ only supports channel-level prefetch-count,
 not connection or size based prefetching.
 
-对于多个consumer共享一个queue的情况，在发送确认之前能指定多少条消息可以同时发送给每个消费者是非常有用的。这可以被当做一个简单的负载均衡技术使用或者提高生产量如果消息是批量发布的。例如，如果生产的应用程序每分钟发送消息是因为它的工作性质
+在多个消费者共享一个队列的案例中，明确指定在收到下一个确认回执前每个消费者一次可以接受多少条消息是非常有用的。这可以在试图批量发布消息的时候起到简单的负载均衡和提高消息吞吐量的作用。For example, if a producing application sends messages every minute because of the nature of the work it is doing.（？？？例如，如果生产应用每分钟才发送一条消息，这说明处理工作尚在运行。）
 
-注意RabbitMQ仅支持channel-level的预取数值，而不是链接或者预取的次数。
+注意，RabbitMQ只支持通道级的预取计数，而不是连接级的或者基于大小的预取。
 
 ## Message Attributes and Payload
 
@@ -583,23 +579,23 @@ certain cost in performance).
 
 Learn more in the [Publishers guide](/publishers.html).
 
-AMQP模型中的消息拥有属性，AMQP定义的一些属性是很常见的，应用程序开发者不需要考虑准确的属性名称，一些示例如下：
+AMQP模型中的消息（Message）对象是带有属性（Attributes）的。有些属性及其常见，以至于AMQP 0-9-1 明确的定义了它们，并且应用开发者们无需费心思思考这些属性名字所代表的具体含义。例如：
 
-- Content type
-- Content encoding
-- Routing key
-- Delivery mode（持久或非持久）
-- Message priority
-- Message publishing timestamp
-- Expiration period
-- Publisher application id
+- Content type（内容类型）
+- Content encoding（内容编码）
+- Routing key（路由键）
+- Delivery mode (persistent or not)
+- 投递模式（持久化 或 非持久化）
+- Message priority（消息优先权）
+- Message publishing timestamp（消息发布的时间戳）
+- Expiration period（消息有效期）
+- Publisher application id（发布应用的ID）
 
-一些属性被AMQP broker使用，但是大多数被接收它们的应用程序所解译。有些属性是可选的被称为headers。它们与HTTP中的X-Headers相似。当消息被发布时它们的属性被设置。
+有些属性是被AMQP代理所使用的，但是大多数是开放给接收它们的应用解释器用的。有些属性是可选的也被称作消息头（headers）。他们跟HTTP协议的X-Headers很相似。消息属性需要在消息被发布的时候定义。
 
-AMQP消息也有有效负荷（它们所携带的数据），被AMQP brokers视为不透明字节数组。broker不会检查有效负荷。消息只包含属性没有效负荷是可能的。使用序列化格式比如JSON是很常见的。缓冲协议与数据包序列化结构数据，以便于将数据作为有效负荷发布。AMQP通常使用“content-type”与“content-encoding”字段来传达这些信息，但是仅按照规定进行。
+AMQP的消息除属性外，也含有一个有效载荷 - Payload（消息实际携带的数据），它被AMQP代理当作不透明的字节数组来对待。消息代理不会检查或者修改有效载荷。消息可以只包含属性而不携带有效载荷。它通常会使用类似JSON这种序列化的格式数据，为了节省，协议缓冲器和MessagePack将结构化数据序列化，以便以消息的有效载荷的形式发布。AMQP及其同行者们通常使用"content-type" 和 "content-encoding" 这两个字段来与消息沟通进行有效载荷的辨识工作，但这仅仅是基于约定而已。
 
-消息可能以持久化的形式发布，这使得AMQP broker将它们持久化到磁盘中。如果服务被重启系统确保它们所接收的持久化的消息不会丢失。简单的将消息发布到一个持久的exchange或者它们被路由到的queue是持久的并不能使消息持久。消息的持久性完全取决于它本身。发布持久化的消息会影响性能（就像数据存储，持久性在性能上有一定的成本）。
-
+消息能够以持久化的方式发布，AMQP代理会将此消息存储在磁盘上。如果服务器重启，系统会确认收到的持久化消息未丢失。简单地将消息发送给一个持久化的交换机或者路由给一个持久化的队列，并不会使得此消息具有持久化性质：它完全取决与消息本身的持久模式（persistence mode）。将消息以持久化方式发布时，会对性能造成一定的影响（就像数据库操作一样，健壮性的存在必定造成一些性能牺牲）。
 
 ## Message Acknowledgements
 
@@ -623,11 +619,11 @@ immediately delivered to another consumer, if any exists).
 Having acknowledgements built into the protocol helps
 developers to build more robust software.
 
-因为网络是不可靠的，应用程序也会失败，所以需要某种类型的处理确认。有时仅仅需要确认消息已被接收的事实，有时确认表示消息被确认有效并且被consumer所处理，例如被确认为是强制性的数据且被持久化到数据存储或索引中。
+由于网络的不确定性和应用失败的可能性，处理确认回执（acknowledgement）就变的十分重要。有时我们确认消费者收到消息就可以了，有时确认回执意味着消息已被验证并且处理完毕，例如对某些数据已经验证完毕并且进行了数据存储或者索引操作。
 
-这种情况是非常常见的，所以AMQP 0-9-1有一个内置的被称为消息确认的功能（有时被称为acks），consumers用来确认消息传送或者处理。如果应用程序崩溃（当连接关闭时AMQP broker发出通知）。如果对于消息的确认是预期的但是没有被AMQP broker接收到，消息会被重新加入queue（可能理解被传送到另外一个consumer，如果有其他consumer存在）。
+这种情形很常见，所以 AMQP 0-9-1 内置了一个功能叫做 消息确认（message acknowledgements），消费者用它来确认消息已经被接收或者处理。如果一个应用崩溃掉（此时连接会断掉，所以AMQP代理亦会得知），而且消息的确认回执功能已经被开启，但是消息代理尚未获得确认回执，那么消息会被从新放入队列（并且在还有还有其他消费者存在于此队列的前提下，立即投递给另外一个消费者）。
 
-协议中的消息确认帮助开发者开发出更强壮的软件。
+协议内置的消息确认功能将帮助开发者建立强大的软件。
 
 ## AMQP 0-9-1 Methods
 
@@ -662,20 +658,20 @@ brokers in response to the aforementioned "requests").
 As an example, the client asks the broker to declare a new
 exchange using the `exchange.declare` method:
 
-AMQP 0-9-1被构造成一系列的方法。方法即操作（像HTTP方法），而且与面向对象开发语言的方法不相同。AMQP方法被分组为类。类仅仅是AMQP方法的逻辑分组。AMQP 0-9-1 reference提供了所有关于AMQP方法的完整介绍。
+AMQP 0-9-1由许多方法（methods）构成。方法即是操作，这跟面向对象编程中的方法没半毛钱关系。AMQP的方法被分组在类（class）中。这里的类仅仅是对AMQP方法的逻辑分组而已。在 AMQP 0-9-1参考 中有对AMQP方法的详细介绍。
 
-让我们看一下exchange类，一系列有关exchange操作的方法。它包含了一下的操作。
+让我们来看看交换机类，有一组方法被关联到了交换机的操作上。这些方法如下所示：
 
 - exchange.declare
 - exchange.declare-ok
 - exchange.delete
 - exchange.delete-ok
 
-（请注意，RabbitMQ网站参考资料也包含了对exchange类特属于RabbitMQ的扩展，这些我们不在这篇文章中讨论）
+（请注意，RabbitMQ网站参考中包含了特用于RabbitMQ的交换机类的扩展，这里我们不对其进行讨论）
 
-以上的操作行成了逻辑队：exchange.declare和exchange.declare-ok，exchange.delete和exchange.delete-ok。这些操作是“请求”（被客户端发送）和“响应”（brokers在响应前面提到的“请求”时发送）。
+以上的操作来自逻辑上的配对：exchange.declare 和 exchange.declare-ok，exchange.delete 和 exchange.delete-ok. 这些操作分为“请求 - requests”（由客户端发送）和“响应 - responses”（由代理发送，用来回应之前提到的“请求”操作）。
 
-例如，客户端请求broker使用exchange.declare方法申明一个新的exchange：
+如下的例子：客户端要求消息代理使用exchange.declare方法声明一个新的交换机：
 
 <img src="./images/exchange-declare.png" alt="exchange.declare" />
 
@@ -686,9 +682,9 @@ exchange name, type, durability flag and so on.
 
 If the operation succeeds, the broker responds with the `exchange.declare-ok` method:
 
-如上图所示，exchange.declare携带了几个参数。它们使客户端能够指定exchange名称，类型，持久性等待。
+如上图所示，exchange.declare方法携带了好几个参数。这些参数可以允许客户端指定交换机名称、类型、是否持久化等等。
 
-如果操作成功，broker使用exchange.declare-ok方法响应。
+操作成功后，消息代理使用exchange.declare-ok方法进行回应：
 
 <img src="./images/exchange-declare-ok.png" alt="exchange.declare-ok" />
 
@@ -700,9 +696,9 @@ The sequence of events is very similar for another
 method pair on the AMQP 0-9-1 _queue_ method class: `queue.declare` and
 `queue.declare-ok`:
 
-除了channel号码exchange.declare-ok不携带任何参数（稍后将在这篇文章后面描述channel）
+exchange.declare-ok方法除了通道号之外没有携带任何其他参数（通道-channel 会在本指南稍后章节进行介绍）。
 
-事件的顺序与另外一组AMQP queue类中的方法很相似：queue.declare和queue.declare-ok：
+AMQP队列类的配对方法 - queue.declare方法 和 queue.declare-ok有着与其他配对方法非常相似的一系列事件：
 
 <img src="./images/queue-declare.png" alt="queue.declare" />
 
@@ -714,7 +710,7 @@ do not have corresponding "response" methods
 and some others (`basic.get`, for example)
 have more than one possible "response".
 
-并不是所有的AMQP方法都有与之相对应的方法。一些（basic.publish是使用最广发的一个）没有相对于的“响应”方法和其他一些（例如basic.get）有多个可能的“响应”。
+不是所有的AMQP方法都有与其配对的“另一半”。许多（basic.publish是最被广泛使用的）都没有相对应的“响应”方法，另外一些（如basic.get）有着一种以上与之对应的“响应”方法。
 
 ## Connections
 
@@ -725,7 +721,7 @@ protected using TLS. When an application no longer needs
 to be connected to the server, it should gracefully close
 its AMQP 0-9-1 connection instead of abruptly closing the underlying TCP connection.
 
-AMQP连接通常是长期存活的。AMQP是一个应用级协议，它使用TCP保持稳定传输。AMQP连接使用身份认证并且可以使用TLS（SSL）来保护连接。当应用程序不再需要连接到AMQP broker时，它应该优雅的关闭AMQP连接而不是突然关闭底层的TCP连接。
+AMQP连接通常是长连接。AMQP是一个使用TCP提供可靠投递的应用层协议。AMQP使用认证机制并且提供TLS（SSL）保护。当一个应用不再需要连接到AMQP代理的时候，需要优雅的释放掉AMQP连接，而不是直接将TCP连接关闭。
 
 ## Channels
 
@@ -750,11 +746,11 @@ For applications that use multiple threads/processes for
 processing, it is very common to open a new channel per thread/process
 and not share channels between them.
 
-一些应用程序需要多余AMQP broker进行多连接。然而在同一时间保持多个TCP连接是不可取的，因为这么做消耗系统资源并且让配置防火墙变得更加困难。AMQP 0-9-1连接是与channel多路复用的，channel被认为是“共享单个TCP连接的轻量级连接”。
+有些应用需要与AMQP代理建立多个连接。无论怎样，同时开启多个TCP连接都是不合适的，因为这样做会消耗掉过多的系统资源并且使得防火墙的配置更加困难。AMQP 0-9-1提供了通道（channels）来处理多连接，可以把通道理解成共享一个TCP连接的多个轻量化连接。
 
-对于使用多线程或者多进程进行处理的应用程序，在每一个线程或者进程中打开一个新的channel而不是彼此间共享一个channel是非常常见的。
+在涉及多线程/进程的应用中，为每个线程/进程开启一个通道（channel）是很常见的，并且这些通道不能被线程/进程共享。
 
-一个特定channel上的通信与另一个channel上的通信是完全分开的，所以每个AMQP方法也包含channel号码，客户端用该channel号码来计算方法用于哪个通道（比如哪个事件处理程序需要被激活）
+一个特定通道上的通讯与其他通道上的通讯是完全隔离的，因此每个AMQP方法都需要携带一个通道号，这样客户端就可以指定此方法是为哪个通道准备的。
 
 ## Virtual Hosts
 
@@ -765,7 +761,7 @@ They are similar to virtual hosts used by many popular Web servers and provide c
 environments in which AMQP entities live. Protocol clients
 specify what vhosts they want to use during connection negotiation.
 
-为了让单个broker能够托管多个隔离的“环境”（成群的用户，exchanges，queues等等），AMQP加入了virtual host的概念（vhosts）。它们与许多流行的web服务器使用的virtual hosts相似，并且为AMQP实体提供完全的隔离环境。AMQP客户端指定了在AMQP连接回话期间需要用的vhosts。
+为了在一个单独的代理上实现多个隔离的环境（用户、用户组、交换机、队列 等），AMQP提供了一个虚拟主机（virtual hosts - vhosts）的概念。这跟Web servers虚拟主机概念非常相似，这为AMQP实体提供了完全隔离的环境。当连接被建立的时候，AMQP客户端来指定使用哪个虚拟主机。
 
 ## AMQP is Extensible
 
@@ -786,15 +782,15 @@ AMQP 0-9-1 has several extension points:
 These features make the AMQP 0-9-1 Model even more flexible
 and applicable to a very broad range of problems.
 
-AMQP 0-9-1有几个扩展点：
+AMQP 0-9-1 拥有多个扩展点：
 
-- Custom exchange types允许开发者实现路由选择策略，而exchange类型提供的开箱即用方式不能完全的覆盖，例如geodata-based路由。
-- 申明exchanges与queues可以包含broker可使用的附加属性。例如在RabbitMQ中，per-queue message TTL就是按这种方式实现的。
-- 对于协议中特定于broker的扩展，例如，extensions that RabbitMQ implements. 
-- New AMQP 0-9-1 method classes可以被引入。
-- Broker可以使用additional plugins扩展代理，例如，RabbitMQ management前端和HTTP API是以插件的形式实现的。
+- 定制化交换机类型 可以让开发者们实现一些开箱即用的交换机类型尚未很好覆盖的路由方案。例如 geodata-based routing。
+- 交换机和队列的声明中可以包含一些消息代理能够用到的额外属性。例如RabbitMQ中的per-queue message TTL即是使用该方式实现。
+- 特定消息代理的协议扩展。例如RabbitMQ所实现的扩展。
+- 新的 AMQP 0-9-1 方法类可被引入。
+- 消息代理可以被其他的插件扩展，例如RabbitMQ的管理前端 和 已经被插件化的HTTP API。
 
-这些特性让AMQP 0-9-1模型更加灵活，适用于非常广泛的问题。
+这些特性使得AMQP 0-9-1模型更加灵活，并且能够适用于解决更加宽泛的问题。
 
 ## AMQP 0-9-1 Clients Ecosystem
 
@@ -813,6 +809,10 @@ and not limit themselves to terminology of a particular client
 library. This way communicating with developers using different
 libraries will be significantly easier.
 
-许多流行的开发语言与平台都有很多RabbitMQ management。它们中的某些严格的遵循了AMQP术语并且仅仅提供AMQP方法的实现。其他的有附加的功能，方便的方法与抽象。一些客户端是异步的（非阻塞的）。一些是同步的（阻塞的），一些支持两种模型的。一些客户端支持特定于供应商的扩展（比如特定于RabbitMQ的扩展）。
+AMQP 0-9-1 拥有众多的适用于各种流行语言和框架的客户端。其中一部分严格遵循AMQP规范，提供AMQP方法的实现。另一部分提供了额外的技术，方便使用的方法和抽象。有些客户端是异步的（非阻塞的），有些是同步的（阻塞的），有些将这两者同时实现。有些客户端支持“供应商的特定扩展”（例如RabbitMQ的特定扩展）。
 
-因为AMQP的主要目标之一是可互操作性，对于开发者而言，理解协议操作是一个非常好的主意，而不不是受特定客户端术语的限制。用这种方式与使用不同的库的开发者沟通将会很简单。
+因为AMQP的主要目标之一就是实现交互性，所以对于开发者来讲，了解协议的操作方法而不是只停留在弄懂特定客户端的库就显得十分重要。这样一来，开发者使用不同类型的库与协议进行沟通时就会容易的多。
+
+### 参考
+
+- [AMQP 0-9-1 Model Explained](https://www.rabbitmq.com/tutorials/amqp-concepts.html)

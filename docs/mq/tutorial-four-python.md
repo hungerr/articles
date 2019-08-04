@@ -17,20 +17,20 @@ As with other Python tutorials, we will use the [Pika](https://pypi.python.org/p
 
 前面的例子，我们已经创建过绑定（bindings），代码如下：
 
-<pre class="lang-python">
+```python
 channel.queue_bind(exchange=exchange_name,
                    queue=queue_name)
-</pre>
+```
 
 绑定（binding）是指交换机（exchange）和队列（queue）的关系。可以简单理解为：这个队列（queue）对这个交换机（exchange）的消息感兴趣。
 
 绑定的时候可以带上一个额外的routing_key参数。为了避免与basic_publish的参数混淆，我们把它叫做绑定键（binding key）。以下是如何创建一个带绑定键的绑定。
 
-<pre class="lang-python">
+```python
 channel.queue_bind(exchange=exchange_name,
                    queue=queue_name,
                    routing_key='black')
-</pre>
+```
 
 绑定键的意义取决于交换机（exchange）的类型。我们之前使用过的扇型交换机（fanout exchanges）会忽略这个值。
 
@@ -44,7 +44,7 @@ channel.queue_bind(exchange=exchange_name,
 
 下图能够很好的描述这个场景：
 
-  <img src="/images/direct-exchange.png" height="170" />
+  <img src="./images/direct-exchange.png" height="170" />
 
 在这个场景中，我们可以看到直连交换机X和两个队列进行了绑定。第一个队列使用orange作为绑定键，第二个队列有两个绑定，一个使用black作为绑定键，另外一个使用green。
 
@@ -52,7 +52,7 @@ channel.queue_bind(exchange=exchange_name,
 
 ### Multiple bindings多绑定
 
-  <img src="/images/direct-exchange-multiple.png" height="170" />
+  <img src="./images/direct-exchange-multiple.png" height="170" />
 
 多个队列使用相同的绑定键是合法的。这个例子中，我们可以添加一个`X`和`Q1`之间的绑定，使用`black`绑定键。这样一来，直连交换机就和扇型交换机的行为一样，会将消息广播到所有匹配的队列。带有`black`路由键的消息会同时发送到`Q1`和`Q2`。
 
@@ -63,18 +63,18 @@ channel.queue_bind(exchange=exchange_name,
 
 我们需要创建一个交换机（exchange）：
 
-<pre class="lang-python">
+```python
 channel.exchange_declare(exchange='direct_logs',
                          exchange_type='direct')
-</pre>
+```
 
 然后我们发送一则消息：
 
-<pre class="lang-python">
+```python
 channel.basic_publish(exchange='direct_logs',
                       routing_key=severity,
                       body=message)
-</pre>
+```
 
 我们先假设`severity`的值是`info`、`warning`、`error`中的一个。
 
@@ -82,7 +82,7 @@ channel.basic_publish(exchange='direct_logs',
 
 处理接收消息的方式和之前差不多，只有一个例外，我们将会为我们感兴趣的每个严重级别分别创建一个新的绑定。
 
-<pre class="lang-python">
+```python
 result = channel.queue_declare(queue='', exclusive=True)
 queue_name = result.method.queue
 
@@ -90,15 +90,15 @@ for severity in severities:
     channel.queue_bind(exchange='direct_logs',
                        queue=queue_name,
                        routing_key=severity)
-</pre>
+```
 
 ### 代码整合
 
-  <img src="/images/python-four.png" height="170" />
+  <img src="./images/python-four.png" height="170" />
  
 `emit_log_direct.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/emit_log_direct.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import sys
@@ -115,11 +115,11 @@ channel.basic_publish(
     exchange='direct_logs', routing_key=severity, body=message)
 print(" [x] Sent %r:%r" % (severity, message))
 connection.close()
-</pre>
+```
 
 `receive_logs_direct.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/receive_logs_direct.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import sys
@@ -153,7 +153,7 @@ channel.basic_consume(
     queue=queue_name, on_message_callback=callback, auto_ack=True)
 
 channel.start_consuming()
-</pre>
+```
 
 如果你希望只是保存`warning`和`error`级别的日志到磁盘，只需要打开控制台并输入：
 

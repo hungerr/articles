@@ -6,7 +6,7 @@
 
 教程使用 [Pika](https://pypi.python.org/pypi/pika) RabbitMQ 客户端[version 1.0.0](https://pika.readthedocs.io/en/stable/).
 
-  <img src="/images/python-two.png" height="110" />
+  <img src="./images/python-two.png" height="110" />
 
 ### What This Tutorial Focuses On
 
@@ -20,7 +20,7 @@
 
 我们对之前教程的`send.py`做些简单的调整，以便可以发送随意的消息。这个程序会按照计划发送任务到我们的工作队列中。我们把它命名为`new_task.py`：
 
-<pre class="lang-python">
+```python
 import sys
 
 message = ' '.join(sys.argv[1:]) or "Hello World!"
@@ -28,18 +28,18 @@ channel.basic_publish(exchange='',
                       routing_key='hello',
                       body=message)
 print(" [x] Sent %r" % message)
-</pre>
+```
 
 我们的旧脚本`receive.py`同样需要做一些改动：它需要为消息体中每一个点号`.`模拟1秒钟的操作。它会从队列中获取消息并执行，我们把它命名为`worker.py`：
 
-<pre class="lang-python">
+```python
 import time
 
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     time.sleep(body.count(b'.'))
     print(" [x] Done")
-</pre>
+```
 
 ### Round-robin dispatching循环调度
 
@@ -111,7 +111,7 @@ python worker.py
 
 消息响应默认是开启的。之前的例子中我们可以使用`no_ack=True`标识把它关闭。是时候移除这个标识了，当工作者（worker）完成了任务，就发送一个响应。
 
-<pre class="lang-python">
+```python
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
     time.sleep( body.count('.') )
@@ -119,7 +119,7 @@ def callback(ch, method, properties, body):
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 channel.basic_consume(queue='hello', on_message_callback=callback)
-</pre>
+```
 
 运行上面的代码，我们发现即使使用CTRL+C杀掉了一个工作者（worker）进程，消息也不会丢失。当工作者（worker）挂掉这后，所有没有响应的消息都会重新发送。
 
@@ -149,28 +149,28 @@ to learn more.
 
 首先，为了不让队列消失，需要把队列声明为持久化（durable）：
 
-<pre class="lang-python">
+```python
 channel.queue_declare(queue='hello', durable=True)
-</pre>
+```
 
 尽管这行代码本身是正确的，但是仍然不会正确运行。因为我们已经定义过一个叫`hello`的非持久化队列。RabbitMq不允许你使用不同的参数重新定义一个队列，它会返回一个错误。但我们现在使用一个快捷的解决方法——用不同的名字，例如`task_queue`。
 
-<pre class="lang-python">
+```python
 channel.queue_declare(queue='task_queue', durable=True)
-</pre>
+```
 
 这个`queue_declare`必须在生产者（producer）和消费者（consumer）对应的代码中修改。
 
 这时候，我们就可以确保在RabbitMq重启之后`queue_declare`队列不会丢失。另外，我们需要把我们的消息也要设为持久化——将`delivery_mode`的属性设为`2`。
 
-<pre class="lang-python">
+```python
 channel.basic_publish(exchange='',
                       routing_key="task_queue",
                       body=message,
                       properties=pika.BasicProperties(
                          delivery_mode = 2, # make message persistent
                       ))
-</pre>
+```
 
 > #### Note on message persistence消息持久化
 >
@@ -183,14 +183,14 @@ channel.basic_publish(exchange='',
 
 这时因为RabbitMQ只管分发进入队列的消息，不会关心有多少消费者（consumer）没有作出响应。它盲目的把第n-th条消息发给第n-th个消费者。
 
-  <img src="/images/prefetch-count.png" height="110" />
+  <img src="./images/prefetch-count.png" height="110" />
 
 
 我们可以使用`basic.qos`方法，并设置`prefetch_count=1`。这样是告诉RabbitMQ，再同一时刻，不要发送超过1条消息给一个工作者（worker），直到它已经处理了上一条消息并且作出了响应。这样，RabbitMQ就会把消息分发给下一个空闲的工作者（worker）。
 
-<pre class="lang-python">
+```python
 channel.basic_qos(prefetch_count=1)
-</pre>
+```
 
 > #### Note about queue size队列大小
 >
@@ -200,7 +200,7 @@ channel.basic_qos(prefetch_count=1)
 
 `new_task.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/new_task.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import sys
@@ -221,11 +221,11 @@ channel.basic_publish(
     ))
 print(" [x] Sent %r" % message)
 connection.close()
-</pre>
+```
 
 `worker.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/worker.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import time
@@ -249,7 +249,7 @@ channel.basic_qos(prefetch_count=1)
 channel.basic_consume(queue='task_queue', on_message_callback=callback)
 
 channel.start_consuming()
-</pre>
+```
 
 使用消息响应和prefetch_count你就可以搭建起一个工作队列了。这些持久化的选项使得在RabbitMQ重启之后仍然能够恢复。
 

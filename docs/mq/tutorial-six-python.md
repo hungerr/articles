@@ -19,11 +19,11 @@ As with other Python tutorials, we will use the [Pika](https://pypi.python.org/p
 
 为了展示RPC服务如何使用，我们创建了一个简单的客户端类。它会暴露出一个名为“call”的方法用来发送一个RPC请求，并且在收到回应前保持阻塞。
 
-<pre class="lang-python">
+```python
 fibonacci_rpc = FibonacciRpcClient()
 result = fibonacci_rpc.call(4)
 print("fib(4) is %r" % result)
-</pre>
+```
 
 > #### A note on RPC
 >
@@ -40,7 +40,7 @@ print("fib(4) is %r" % result)
 
 一般来说通过RabbitMQ来实现RPC是很容易的。一个客户端发送请求信息，服务器端将其应用到一个回复信息中。为了接收到回复信息，客户端需要在发送请求的时候同时发送一个回调队列（callback queue）的地址。我们试试看：
 
-<pre class="lang-python">
+```python
 result = channel.queue_declare(queue='', exclusive=True)
 callback_queue = result.method.queue
 
@@ -52,7 +52,7 @@ channel.basic_publish(exchange='',
                       body=request)
 
 # ... and some code to read a response message from the callback_queue ...
-</pre>
+```
 
 > #### Message properties消息属性
 >
@@ -74,7 +74,7 @@ channel.basic_publish(exchange='',
 ### Summary
 
 
-  <img src="/images/python-six.png" height="200" />
+  <img src="./images/python-six.png" height="200" />
 
 我们的RPC如此工作:
 
@@ -88,7 +88,7 @@ channel.basic_publish(exchange='',
 
 `rpc_server.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/rpc_server.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 
@@ -125,7 +125,7 @@ channel.basic_consume(queue='rpc_queue', on_message_callback=on_request)
 
 print(" [x] Awaiting RPC requests")
 channel.start_consuming()
-</pre>
+```
 
 服务器端代码相当简单：
 
@@ -136,7 +136,7 @@ channel.start_consuming()
 
 `rpc_client.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/rpc_client.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import uuid
@@ -183,7 +183,7 @@ fibonacci_rpc = FibonacciRpcClient()
 print(" [x] Requesting fib(30)")
 response = fibonacci_rpc.call(30)
 print(" [.] Got %r" % response)
-</pre>
+```
 
 The client code is slightly more involved:
 

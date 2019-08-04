@@ -52,40 +52,40 @@ code.
 
 <img src="./images/sending.png" height="100" />
 
-我们第一个程序send.py会发送一个消息到队列中。首先要做的事情就是建立一个到RabbitMQ服务器的连接。
+我们第一个程序`send.py`会发送一个消息到队列中。首先要做的事情就是建立一个到RabbitMQ服务器的连接。
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 
 connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
 channel = connection.channel()
-</pre>
+```
 
 现在我们已经跟本地机器的代理建立了连接。如果你想连接到其他机器的代理上，需要把代表本地的`localhost`改为指定的名字或IP地址。
 
 接下来，在发送消息之前，我们需要确认服务于消费者的队列已经存在。如果将消息发送给一个不存在的队列，RabbitMQ会将消息丢弃掉。下面我们创建一个名为"hello"的队列用来将消息投递进去。:
 
-<pre class="lang-python">
+```python
 channel.queue_declare(queue='hello')
-</pre>
+```
 
 这时候我们就可以发送消息了，我们第一条消息只包含了Hello World!字符串，我们打算把它发送到hello队列。
 
 在RabbitMQ中，消息是不能直接发送到队列中的，这个过程需要通过交换机（exchange）来进行。但是为了不让细节拖累我们的进度，这里我们只需要知道如何使用由空字符串表示的默认交换机即可。如果你想要详细了解交换机，可以查看我们教程的第三部分来获取更多细节。默认交换机比较特别，它允许我们指定消息究竟需要投递到哪个具体的队列中，队列名字需要在routing_key参数中指定:
 
-<pre class="lang-python">
+```python
 channel.basic_publish(exchange='',
                       routing_key='hello',
                       body='Hello World!')
 print(" [x] Sent 'Hello World!'")
-</pre>
+```
 
 在退出程序之前，我们需要确认网络缓冲已经被刷写、消息已经投递到RabbitMQ。通过安全关闭连接可以做到这一点:
 
-<pre class="lang-python">
+```python
 connection.close()
-</pre>
+```
 
 > #### 发送不成功！
 > 
@@ -94,7 +94,7 @@ connection.close()
 
 ### 接收
 
-  <img src="/images/receiving.png" height="100" />
+  <img src="./images/receiving.png" height="100" />
 
 我们的第二个程序`receive.py`，将会从队列中获取消息并将其打印到屏幕上。
 
@@ -102,9 +102,9 @@ connection.close()
 
 下一步也和之前一样，我们需要确认队列是存在的。我们可以多次使用`queue_declare`命令来创建同一个队列，但是只有一个队列会被真正的创建。
 
-<pre class="lang-python">
+```python
 channel.queue_declare(queue='hello')
-</pre>
+```
 
 你也许要问: 为什么要重复声明队列呢 —— 我们已经在前面的代码中声明过它了。如果我们确定了队列是已经存在的，那么我们可以不这么做，比如此前预先运行了send.py程序。可是我们并不确定哪个程序会首先运行。这种情况下，在程序中重复将队列重复声明一下是种值得推荐的做法。
 
@@ -123,18 +123,18 @@ channel.queue_declare(queue='hello')
 
 从队列中获取消息相对来说稍显复杂。需要为队列定义一个回调（callback）函数。当我们获取到消息的时候，Pika库就会调用此回调函数。这个回调函数会将接收到的消息内容输出到屏幕上。
 
-<pre class="lang-python">
+```python
 def callback(ch, method, properties, body):
     print(" [x] Received %r" % body)
-</pre>
+```
 
 下一步，我们需要告诉RabbitMQ这个回调函数将会从名为"hello"的队列中接收消息:
 
-<pre class="lang-python">
+```python
 channel.basic_consume(queue='hello',
                       auto_ack=True,
                       on_message_callback=callback)
-</pre>
+```
 
 要成功运行这些命令，我们必须保证队列是存在的，我们的确可以确保它的存在——因为我们之前已经使用`queue_declare`将其声明过了。
 
@@ -142,16 +142,16 @@ channel.basic_consume(queue='hello',
 
 最后，我们运行一个用来等待消息数据并且在需要的时候运行回调函数的无限循环。
 
-<pre class="lang-python">
+```python
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()
-</pre>
+```
 
 ### 将代码整合到一起
 
 `send.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/send.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 
@@ -164,11 +164,11 @@ channel.queue_declare(queue='hello')
 channel.basic_publish(exchange='', routing_key='hello', body='Hello World!')
 print(" [x] Sent 'Hello World!'")
 connection.close()
-</pre>
+```
 
 `receive.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/receive.py))
 
-<pre class="lang-python">
+```
 #!/usr/bin/env python
 import pika
 
@@ -188,24 +188,24 @@ channel.basic_consume(
 
 print(' [*] Waiting for messages. To exit press CTRL+C')
 channel.start_consuming()
-</pre>
+```
 
 现在我们可以在终端中尝试一下我们的程序了。
 
 首先我们启动一个消费者，它会持续的运行来等待投递到达:
 
-<pre class="lang-bash">
+```python
 python receive.py
 # => [*] Waiting for messages. To exit press CTRL+C
 # => [x] Received 'Hello World!'
-</pre>
+```
 
 然后启动生产者，生产者程序每次执行后都会停止运行:
 
-<pre class="lang-bash">
+```
 python send.py
 # => [x] Sent 'Hello World!'
-</pre>
+```
 
 **成功了！**我们已经通过RabbitMQ发送第一条消息。你也许已经注意到了，`receive.py`程序并没有退出。它一直在准备获取消息，你可以通过`Ctrl-C`来中止它。
 

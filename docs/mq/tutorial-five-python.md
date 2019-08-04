@@ -25,7 +25,7 @@
 
 It's easiest to explain this in an example:
 
-  <img src="/images/python-five.png" height="170" />
+  <img src="./images/python-five.png" height="170" />
 
 这个例子里，我们发送的所有消息都是用来描述小动物的。发送的消息所携带的路由键是由三个单词所组成的，这三个单词被两个.分割开。路由键里的第一个单词描述的是动物的手脚的利索程度，第二个单词是动物的颜色，第三个是动物的种类。所以它看起来是这样的： `<celerity>.<colour>.<species>`。
 
@@ -60,7 +60,7 @@ The code is almost the same as in the
 
 `emit_log_topic.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/emit_log_topic.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import sys
@@ -77,11 +77,11 @@ channel.basic_publish(
     exchange='topic_logs', routing_key=routing_key, body=message)
 print(" [x] Sent %r:%r" % (routing_key, message))
 connection.close()
-</pre>
+```
 
 `receive_logs_topic.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/receive_logs_topic.py))
 
-<pre class="lang-python">
+```python
 #!/usr/bin/env python
 import pika
 import sys
@@ -115,7 +115,7 @@ channel.basic_consume(
     queue=queue_name, on_message_callback=callback, auto_ack=True)
 
 channel.start_consuming()
-</pre>
+```
 
 执行下边命令 接收所有日志：
 

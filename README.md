@@ -37,7 +37,7 @@
 - [基于比较的排序](docs/algorithm/sort.md "排序")
 - [LRU算法解析](docs/algorithm/lru.md "LRU")
 - [浅谈布隆过滤器](docs/algorithm/bloomfilter.md "布隆过滤器")
-- [浅谈HyperLogLog](docs/algorithm/hyperloglog.md "HyperLogLog")
+- [浅谈HyperLogLog(转载)](docs/algorithm/hyperloglog.md "HyperLogLog")
 
 ### MySQL
 - [MySQL简介及语法](docs/database/mysql-sql-lang.md "MySQL简介及语法")
@@ -70,6 +70,7 @@
 - [SQL练习题](docs/interview/sql-practice.md "SQL练习题")
 - [Redis面试题](docs/interview/redis-question.md "Redis面试题")
 - [Python面试题](docs/interview/python-question.md "Python面试题")
+- [大数据面试题](docs/interview/big-data.md "大数据面试题")
 
 ### Tips
 - [tips](docs/tips/tips.md "Tips")

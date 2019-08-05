@@ -855,3 +855,4 @@ AMQP中提供的消息确认机制主要包括积极确认(一般叫ack，Acknow
 ## 参考
 
 - [AMQP 0-9-1 Model Explained](https://www.rabbitmq.com/tutorials/amqp-concepts.html)
+- [理解RabbitMQ中的AMQP-0-9-1模型](http://throwable.coding.me/2018/11/21/rabbitmq-amqp-model/)

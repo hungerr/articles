@@ -282,8 +282,7 @@ Example uses:
 
 对每一条消息，Topic交换器会遍历所有的绑定关系，检查消息指定的路由键是否匹配绑定关系中的路由键，如果匹配，则将消息推送到相应队列。
 
-<img src="./images/exchange-topic
-.png" alt="exchange topic" />
+<img src="./images/exchange-topic.png" alt="exchange topic" />
 
 使用示例：
 
@@ -329,8 +328,7 @@ will not be used to evaluate matches.
 
 Headers交换器是一种不常用的交换器，它使用多个属性进行路由，这些属性一般称为消息头，它不使用路由键进行消息路由。消息头(Message Headers)是消息属性(消息元数据)部分，因此，使用Headers交换器在建立队列和交换器的绑定关系的时候需要指定一组键值对，发送消息到Headers交换器时候，需要在消息属性中携带一组键值对作为消息头。Headers交换器也是忽略路由键的。
 
-<img src="./images/exchange-header
-.png" alt="exchange topic" />
+<img src="./images/exchange-header.png" alt="exchange topic" />
 
 头交换机可以视为直连交换机的另一种表现形式。头交换机能够像直连交换机一样工作，不同之处在于头交换机的路由规则是建立在头属性值之上，而不是路由键。路由键必须是一个字符串，而头属性值则没有这个约束，它们甚至可以是整数或者哈希值（字典）等。
 

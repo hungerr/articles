@@ -38,6 +38,7 @@
 - [LRU算法解析](docs/algorithm/lru.md "LRU")
 - [浅谈布隆过滤器](docs/algorithm/bloomfilter.md "布隆过滤器")
 - [浅谈HyperLogLog(转载)](docs/algorithm/hyperloglog.md "HyperLogLog")
+- [浅谈BitMap](docs/algorithm/bitmap.md "BitMap")
 
 ### MySQL
 - [MySQL简介及语法](docs/database/mysql-sql-lang.md "MySQL简介及语法")

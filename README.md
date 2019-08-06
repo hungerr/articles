@@ -58,6 +58,7 @@
 - [RabbitMQ教程(四)路由](docs/mq/tutorial-four-python.md "RabbitMQ教程")
 - [RabbitMQ教程(五)主题交换机](docs/mq/tutorial-five-python.md "RabbitMQ教程")
 - [RabbitMQ教程(六)远程过程调用](docs/mq/tutorial-six-python.md "RabbitMQ教程")
+- [Kombu源码分析](docs/mq/kombu.md "Kombu源码分析")
 
 ### Redis
 

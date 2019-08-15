@@ -590,4 +590,4 @@ def _deliver(self, message, queue):
 
 ### 回顾
 
-可见，Kombu中`Channel`和`Transport`非常重要，`Channel`记录了队列列表、消费者列表以及两者的映射关系，而`Transport`记录了回调函数列表以及队列与回调函数的映射关系。Kombu对所有需要监听的队列`_active_queues`都查询一遍，直到查询完毕或者遇到一个可以使用的Queue，然后就获取消息，回调此队列对应的callback。
+可见，Kombu中`Channel`和`Transport`非常重要，`Channel`记录了队列列表、消费者列表以及两者的映射关系，而`Transport`记录了队列与回调函数的映射关系。Kombu对所有需要监听的队列`_active_queues`都查询一遍，直到查询完毕或者遇到一个可以使用的Queue，然后就获取消息，回调此队列对应的callback。

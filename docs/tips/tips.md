@@ -45,8 +45,10 @@ apt-get install open-vm-tools-dkms
 
 挂载:
 ```bash
+若hgfs文件夹不存在
 mkdir /mnt/hgfs
-chmod /mnt/hgfs
+若存在，还需要改变权限，需要给当前用户添加w权限
+chmod 777 /mnt/hgfs
 
 mount -t vmhgfs .host:/ /mnt/hgfs
 vmhgfs-fuse .host:/ /mnt/hgfs

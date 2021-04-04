@@ -12,6 +12,14 @@
 - 对 Hook 的调用要么在一个大驼峰法命名的函数（视作一个组件）内部，要么在另一个 useSomething 函数（视作一个自定义 Hook）中。
 - Hook 在每次渲染时都按照相同的顺序被调用。
 
+### 生命周期方法要如何对应到 Hook？
+- constructor：函数组件不需要构造函数。你可以通过调用 useState 来初始化 state。如果计算的代价比较昂贵，你可以传一个函数给 useState。
+- getDerivedStateFromProps：改为 在渲染时 安排一次更新。
+- shouldComponentUpdate：详见 下方 React.memo.
+- render：这是函数组件体本身。每次渲染函数都会执行一次
+- componentDidMount, componentDidUpdate, componentWillUnmount：useEffect Hook 可以表达所有这些(包括 不那么 常见 的场景)的组合。
+- getSnapshotBeforeUpdate，componentDidCatch 以及 getDerivedStateFromError：目前还没有这些方法的 Hook 等价写法，但很快会被添加。
+
 ### useState
 
 我们推荐把 state 切分成多个 state 变量，每个变量包含的不同值会在同时发生变化。
@@ -136,6 +144,7 @@ function Timer() {
 
   // ...
 }
+```
 惰性创建：
 ```javascript
 function Image(props) {
@@ -198,7 +207,27 @@ function Example() {
   )
 ```
 - 是你使用了「依赖数组」优化但没有正确地指定所有的依赖。如果一个 effect 指定了 [] 作为第二个参数，但在内部读取了 someProp，它会一直「看到」 someProp 的初始值
-- 如果你刻意地想要从某些异步回调中读取 最新的 state，你可以用 一个 ref 来保存它，修改它，并从中读取。
+- 如果你刻意地想要从某些异步回调中读取 最新的 state，你可以用 一个 ref 来保存它，修改它，并从中读取
+- 在一些更加复杂的场景中（比如一个 state 依赖于另一个 state），尝试用 useReducer Hook 把 state 更新逻辑移到 effect 之外
+```JAVASCRIPT
+function Example(props) {
+  // 把最新的 props 保存在一个 ref 中
+  const latestProps = useRef(props);
+  useEffect(() => {
+    latestProps.current = props;
+  });
+
+  useEffect(() => {
+    function tick() {
+      // 在任何时候读取最新的 props
+      console.log(latestProps.current);
+    }
+
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []); // 这个 effect 从不会重新执行
+}
+```
 - 使用 setState 的函数式更新形式:
 ```javascript
 function Counter() {
@@ -214,9 +243,44 @@ function Counter() {
   return <h1>{count}</h1>;
 }
 ```
+### useCallback
+返回一个 memoized 回调函数。
 
+把内联回调函数及依赖项数组作为参数传入 useCallback，它将返回该回调函数的 memoized 版本，该回调函数仅在某个依赖项改变时才会更新。当你把回调函数传递给经过优化的并使用引用相等性去避免非必要渲染（例如 shouldComponentUpdate）的子组件时，它将非常有用。
+
+useCallback(fn, deps) 相当于 useMemo(() => fn, deps)。
+
+### useMemo
+返回一个 memoized 值。
+
+这行代码会调用 computeExpensiveValue(a, b)。但如果依赖数组 [a, b] 自上次赋值以来没有改变过，useMemo 会跳过二次调用，只是简单复用它上一次返回的值。
+
+useMemo 也允许你跳过一次子节点的昂贵的重新渲染：
+```javascript
+function Parent({ a, b }) {
+  // Only re-rendered if `a` changes:
+  const child1 = useMemo(() => <Child1 a={a} />, [a]);
+  // Only re-rendered if `b` changes:
+  const child2 = useMemo(() => <Child2 b={b} />, [b]);
+  return (
+    <>
+      {child1}
+      {child2}
+    </>
+  )
+}
+```
+如果依赖数组的值相同，useMemo 允许你 记住一次昂贵的计算。但是，这仅作为一种提示，并不 保证 计算不会重新运行。但有时候需要确保一个对象仅被创建一次。
+```javascript
+function Table(props) {
+  // ✅ createRows() 只会被调用一次
+  const [rows, setRows] = useState(() => createRows(props.count));
+  // ...
+}
+```
 ### 如何测量 DOM 节点
 
+请记住，当 ref 对象内容发生变化时，useRef 并不会通知你。变更 .current 属性不会引发组件重新渲染。如果想要在 React 绑定或解绑 DOM 节点的 ref 时运行某些代码，则需要使用回调 ref 来实现
 ```javascript
 function MeasureExample() {
   const [height, setHeight] = useState(0);
@@ -258,6 +322,75 @@ function useClientRect() {
   }, []);
   return [rect, ref];
 }
+```
+我们没有选择使用 useRef，因为当 ref 是一个对象时它并不会把当前 ref 的值的 变化 通知到我们。使用 callback ref 可以确保 即便子组件延迟显示被测量的节点 (比如为了响应一次点击)，我们依然能够在父组件接收到相关的信息，以便更新测量结果：
+```javascript
+import React, {useState, useCallback} from "react";
+import ReactDOM from "react-dom";
+
+function MeasureExample() {
+  const [height, setHeight] = useState(0);
+
+  // Because our ref is a callback, it still works
+  // even if the ref only gets attached after button
+  // click inside the child component.
+  const measureRef = useCallback(node => {
+    if (node !== null) {
+      setHeight(node.getBoundingClientRect().height);
+    }
+  }, []);
+
+  return (
+    <>
+      <Child measureRef={measureRef} />
+      {height > 0 &&
+        <h2>The above header is {Math.round(height)}px tall</h2>
+      }
+    </>
+  );
+}
+
+function Child({ measureRef }) {
+  const [show, setShow] = useState(false);
+  if (!show) {
+    return (
+      <button onClick={() => setShow(true)}>
+        Show child
+      </button>
+    );
+  }
+  return <h1 ref={measureRef}>Hello, world</h1>;
+}
+
+const rootElement = document.getElementById("root");
+ReactDOM.render(<MeasureExample />, rootElement);
+```
+如果你希望在每次组件调整大小时都收到通知，则可能需要使用 ResizeObserver:
+```javascript
+function Example() {
+    const [height, setHeight] = useState(0);
+
+    const ref = useRef()
+
+    useEffect(() => {
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                const dimensions = entry.contentRect;
+                setHeight(dimensions.width)
+            }
+            });
+        resizeObserver.observe(ref.current);
+    }, [])
+  
+    return (
+      <>
+        <h1 ref={ref}>Hello, world</h1>
+        <h2>The above header is {Math.round(height)}px tall</h2>
+      </>
+    );
+  }
+
+export default Example;
 ```
 
 ### useContext
@@ -340,8 +473,9 @@ function Counter() {
     </>
   );
 }
-
-
+```
+异步回调中使用reducer获取state最新值
+```JAVASCRIPT
 function scanReducer(state, [type, payload]) {
   switch (type) {
     case "initial":

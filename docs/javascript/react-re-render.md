@@ -385,5 +385,123 @@ function updateRef(initialValue) {
 
 PS：注意不要跟 `hooks` API 中的 `React.useMemo` 搞混，这是两个完全不一样的东西。
 
+#### 2.3.3、useReducer解决方案
+
+```javascript
+const ExpensiveTreeDispatch = React.memo(function (props) {
+  console.log('Render ExpensiveTree');
+  const { dispatch } = props;
+  const dateBegin = Date.now();
+
+  while (Date.now() - dateBegin < 600) {}
+
+  useEffect(() => {
+    console.log('Render ExpensiveTree --- DONE');
+  });
+
+  return (
+    <div
+      onClick={() => {
+        dispatch({ type: 'log' });
+      }}
+    >
+      <p>重组件</p>
+    </div>
+  );
+});
+
+function reducer(state, action) {
+  switch (action.type) {
+    case 'update':
+      return action.preload;
+    case 'log':
+      console.log(`Text: ${state}`);
+      return state;
+  }
+}
+
+export default function Index() {
+  const [text, dispatch] = useReducer(reducer, 'Initial value');
+
+  return (
+    <>
+      <input
+        value={text}
+        onChange={(e) =>
+          dispatch({
+            type: 'update',
+            preload: e.target.value,
+          })
+        }
+      />
+      <ExpensiveTreeDispatch dispatch={dispatch} />
+    </>
+  );
+}
+```
+
+原理：
+- `dispatch`自带`memoize`， `re-render`时不会发生变化
+- 在`reducer`函数里可以获取最新的`state`。
+
+React官方推荐使用context方式代替通过props传递callback方式。上例改用context传递callback函数：
+
+```javascript
+function reducer(state, action) {
+  switch (action.type) {
+    case 'update':
+      return action.preload;
+    case 'log':
+      console.log(`Text: ${state}`);
+      return state;
+  }
+}
+
+const TextUpdateDispatch = React.createContext(null);
+
+export default function Index() {
+  const [text, dispatch] = useReducer(reducer, 'Initial value');
+
+  return (
+    <TextUpdateDispatch.Provider value={dispatch}>
+      <input
+        value={text}
+        onChange={(e) =>
+          dispatch({
+            type: 'update',
+            preload: e.target.value,
+          })
+        }
+      />
+      <ExpensiveTreeDispatchContext dispatch={dispatch} />
+    </TextUpdateDispatch.Provider>
+  );
+}
+
+const ExpensiveTreeDispatchContext = React.memo(function (props) {
+  console.log('Render ExpensiveTree');
+  // 从`context`获取`dispatch`
+  const dispatch = useContext(TextUpdateDispatch);
+
+  const dateBegin = Date.now();
+
+  while (Date.now() - dateBegin < 600) {}
+
+  useEffect(() => {
+    console.log('Render ExpensiveTree --- DONE');
+  });
+
+  return (
+    <div
+      onClick={() => {
+        dispatch({ type: 'log' });
+      }}
+    >
+      <p>重组件</p>
+    </div>
+  );
+});
+```
+
 ### 3、context 更新，引起的 re-render
 其实关于 `context`，我们平时都有在用，如 `react-redux`，`react-router` 都运用了 context 来进行状态管理。

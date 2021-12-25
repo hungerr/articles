@@ -36,6 +36,7 @@
 - [React](docs/javascript/react.md "React")
 - [react-router](docs/javascript/react-router.md "react-router")
 - [react-router-v5-to-v6](docs/javascript/react-router-v5-to-v6.md "react-router-v5-to-v6")
+- [深入React函数组件的re-render原理及优化](docs/javascript/react-re-render.md "react-re-render")
 
 ### CSS
 - [CSS盒模型](docs/css/css-box-model.md "CSS盒模型")

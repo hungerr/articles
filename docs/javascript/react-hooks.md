@@ -12,6 +12,8 @@
 - 对 Hook 的调用要么在一个大驼峰法命名的函数（视作一个组件）内部，要么在另一个 useSomething 函数（视作一个自定义 Hook）中。
 - Hook 在每次渲染时都按照相同的顺序被调用。
 
+Hooks都是以链表形式存在的，每次调用useState，链表都会执行next向后移动一步，如果写在条件判断中，会使之后的取值出现偏差。
+
 ### 生命周期方法要如何对应到 Hook？
 - constructor：函数组件不需要构造函数。你可以通过调用 useState 来初始化 state。如果计算的代价比较昂贵，你可以传一个函数给 useState。
 - getDerivedStateFromProps：改为 在渲染时 安排一次更新。

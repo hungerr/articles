@@ -28,6 +28,43 @@
 
 - `componentWillUnmount()`
 
+#### 错误处理
+当渲染过程，生命周期，或子组件的构造函数中抛出错误时，会调用如下方法：
+
+- `static getDerivedStateFromError()`
+- `componentDidCatch()`
+
+```javascript
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    // 更新 state 使下一次渲染可以显示降级 UI
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, info) {
+    // "组件堆栈" 例子:
+    //   in ComponentThatThrows (created by App)
+    //   in ErrorBoundary (created by App)
+    //   in div (created by App)
+    //   in App
+    logComponentStackToMyService(info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      // 你可以渲染任何自定义的降级 UI
+      return <h1>Something went wrong.</h1>;
+    }
+
+    return this.props.children;
+  }
+}
+```
 ### 常用的生命周期方法
 
 #### `render()`
@@ -160,7 +197,10 @@ componentWillUnmount() 中不应调用 setState()，因为该组件将永远不�
 
 将 `setState()` 视为`请求`而**不是立即更新组件**的命令。为了更好的感知性能，React 会**延迟**调用它，然后通过一次传递更新多个组件。React 并不会保证 state 的变更会立即生效。
 
+`setState()`在合成事件和钩子函数中是异步的，在原生事件和`setTimeout`中是同步的。
 `setState()` 并不总是立即更新组件。它会批量推迟更新。这使得在调用 setState() 后立即读取 this.state 成为了隐患。为了消除隐患，请使用 `componentDidUpdate` 或者 `setState` 的**回调函数**，这两种方式都可以保证在应用更新后触发。如需基于之前的 state 来设置当前的 state，请阅读下述关于参数 updater 的内容。
+
+`setState()`在合成事件和钩子函数中是异步的，在原生事件和`setTimeout`中是同步的。
 
 除非 `shouldComponentUpdate()` 返回 false，否则 setState() 将始终执行**重新渲染**操作。如果可变对象被使用，且无法在 shouldComponentUpdate() 中实现条件渲染，那么仅在新旧状态不一时调用 setState()可以避免不必要的重新渲染
 

@@ -342,6 +342,7 @@ tcp|使用tcp模式
 rsize=|读取块大小
 wsize=|写入块大小
 nfsvers=|设定要使用的NFS版本
+minorversion=|小版本 `mount -o nfsvers=4,minorversion=1 NFSSERVER:/unix /unix`
 mountport|设定mount的端口  
 port|根据server端export出的端口设定
 timeo=|设置超时时间，当数据传输遇到问题时，会根据这个参数尝试进行重新传输。默认值是0.7秒。如果网络连接不是很稳定的话就要加大这个数值，并且推荐使用HARD MOUNT方式，同时最好也加上INTR参数，这样你就可以终止任何挂起的文件访问。  

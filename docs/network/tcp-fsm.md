@@ -173,6 +173,14 @@ RFC 793 [Postel 1981c] 指出MSL为2分钟。然而，实现中的常用值是30
 
            Active Side Causes Half-Open Connection Discovery
 ```
+
+#### tcp报文失序
+比如，客户端向服务器发送6个报文段，先发送了2,3,4,5,6，此时已接近服务器接收端的接收窗口大小，服务端认为剩余的窗口大小不足以接收报文段1(离接收窗口还有一个MSS)，于是向客户端发送RST请求。
+
+![](images/tcp-ebay-1.jpg)
+
+[链接](https://mp.weixin.qq.com/s/8w36DZN1oc-HyvpabRNhdw)
+
 ### 同时打开与同时关闭
 
 两个应用程序同时彼此执行主动打开的情况是可能的。

@@ -62,6 +62,9 @@
 ### Linux
 - [使用 /proc 文件系统来访问 Linux 内核的内容(转载)](https://www.ibm.com/developerworks/cn/linux/l-proc.html "/proc")
 
+- [linux文件系统](docs/linux/fs.md)
+- [文件句柄](docs/linux/file-handle.md)
+
 ### 消息队列
 - [理解AMQP 0-9-1模型](docs/mq/amqp-0-9-1-model.md "AMQP 0-9-1 Model Explained")
 - [RabbitMQ教程(一)Hello World](docs/mq/tutorial-one-python.md "RabbitMQ教程")

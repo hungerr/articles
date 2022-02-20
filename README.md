@@ -9,6 +9,7 @@
 - [WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
 - [装饰器与闭包](docs/python/closure-decorator.md "WSGI")
 - [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "why python so slow")
+- [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "WSGI")
 
 ### 网络协议
 - [TCP/IP协议族概述](docs/network/network-summary.md "tcp/ip")
@@ -64,6 +65,7 @@
 
 - [linux文件系统](docs/linux/fs.md)
 - [文件句柄](docs/linux/file-handle.md)
+- [SSL证书](docs/linux/ssl.md)
 
 ### 消息队列
 - [理解AMQP 0-9-1模型](docs/mq/amqp-0-9-1-model.md "AMQP 0-9-1 Model Explained")

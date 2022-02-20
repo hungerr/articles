@@ -163,13 +163,13 @@ openssl x509 -in -inform der -outform pem -out
 ### PKCS
 PKCS 全称是 Public-Key Cryptography Standards ，是由 RSA 实验室与其它安全系统开发商为促进公钥密码的发展而制订的一系列标准，PKCS 目前共发布过 15 个标准。 常用的有：
 
-- PKCS#7 Cryptographic Message Syntax Standard  常用的后缀是： .P7B .P7C .SPC
+- **PKCS#7** Cryptographic Message Syntax Standard  常用的后缀是： .P7B .P7C .SPC
 
-- PKCS#10 Certification Request Standard p10是证书请求
+- **PKCS#10** Certification Request Standard p10是证书请求
 
-- PKCS#12 Personal Information Exchange Syntax Standard 常用的后缀有： .P12 .PFX 用于存放个人证书/私钥，他通常包含保护密码，2进制方式
+- **PKCS#12** Personal Information Exchange Syntax Standard 常用的后缀有： .P12 .PFX 用于存放个人证书/私钥，他通常包含保护密码，2进制方式
 
-- X.509是常见通用的证书格式。所有的证书都符合为Public Key Infrastructure (PKI) 制定的 ITU-T X509 国际标准。X.509 DER 编码(ASCII)的后缀是： .DER .CER .CRT，X.509 PEM 编码(Base64)的后缀是： .PEM .CER .CRT
+- **X.509**是常见通用的证书格式。所有的证书都符合为Public Key Infrastructure (PKI) 制定的 ITU-T X509 国际标准。X.509 DER 编码(ASCII)的后缀是： .DER .CER .CRT，X.509 PEM 编码(Base64)的后缀是： .PEM .CER .CRT
 
 p7r是CA对证书请求的回复，只用于导入
 

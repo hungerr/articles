@@ -67,6 +67,9 @@
 - [文件句柄](docs/linux/file-handle.md)
 - [SSL证书](docs/linux/ssl.md)
 
+### Linux命令系列
+- [lsof](docs/linux/lsof.md)
+
 ### 消息队列
 - [理解AMQP 0-9-1模型](docs/mq/amqp-0-9-1-model.md "AMQP 0-9-1 Model Explained")
 - [RabbitMQ教程(一)Hello World](docs/mq/tutorial-one-python.md "RabbitMQ教程")

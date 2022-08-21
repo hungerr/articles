@@ -95,5 +95,8 @@
 - [大数据面试题](docs/interview/big-data.md "大数据面试题")
 - [TCP/IP面试题](docs/interview/tcp.md "网络面试题")
 
+### 云原生
+- [云原生潮流下一些关于存储发展的思考](docs/cloud/cloud_history_and_storage.md "云原生潮流下一些存储发展的思考")
+
 ### Tips
 - [tips](docs/tips/tips.md "Tips")

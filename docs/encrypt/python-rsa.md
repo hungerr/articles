@@ -1,6 +1,21 @@
 ## Python RSA加密
 
+### RSAES-OAEP 和 RSAES-PKCS1-v1_5
+
+`OAEP= Optimal Asymmetric Encryption Padding`
+
+RSA的加密机制有两种方案一个是`RSAES-OAEP`，另一个`RSAES-PKCS1-v1_5`。`PKCS#1`推荐在新的应用中使用`RSAES- OAEP`，保留`RSAES-PKCS#1-v1_5`跟老的应用兼容。它们两的区别仅仅在于加密前编码的方式不同。而加密前的编码是为了提供了抵抗各种活动的敌对攻击的安全机制。
+
+### RSASSA-PSS 和 RSASSA-PKCS1-v1_5
+
+`PSS = Probabilistic Signature Scheme`
+
+`PKCS#1`的签名机制也有种方案：`RSASSA-PSS`和`RSASSA-PKCS1-v1_5`。同样，推荐`RSASSA-PSS`用于新的应用,而`RSASSA-PKCS1-v1_5`只用于兼容老的应用。
+
+
 ### rsa
+
+rsa包使用RSAES-PKCS1-v1_5加密
 
 ```PYTHON
 import base64
@@ -99,7 +114,7 @@ from Cryptodome.PublicKey import RSA
 
 def encrtypt(data, public_code):
     public_key = RSA.importKey(public_code)
-    cipher = PKCS1_OAEP.new(public_key, hashAlgo=SHA256, mgfunc=lambda x, y: pss.MGF1(x, y, SHA1))
+    cipher = PKCS1_OAEP.new(public_key, hashAlgo=SHA256, mgfunc=lambda x, y: pss.MGF1(x, y, SHA256))
     encrypt_data = base64.b64encode(cipher.encrypt(data.encode())).decode()
     return encrypt_data
 ```
@@ -122,6 +137,8 @@ def encrtypt(data, public_code, length):
         encrypt_data.append(base64.b64encode(cipher.encrypt(str(data)[i:i + length].encode())).decode())
     return encrypt_data
 ```
+
+hashAlgo默认是`SHA1`, 注意兼容
 
 ### java Cipher兼容
 
@@ -170,12 +187,9 @@ RSA/ECB/OEAPWithSHA-1AndMGF1Padding
 
 ## Note
 
-注意MGF1算法  须一致
-```
-mgfunc=lambda x, y: pss.MGF1(x, y, SHA256))
-```
+注意hashAlgo需一致
 
-python PKCS1_OAEP的new方法
+python PKCS1_OAEP的new方法：
 ```PYTHON
 def new(key, hashAlgo=None, mgfunc=None, label=b'', randfunc=None):
     """Return a cipher object :class:`PKCS1OAEP_Cipher` that can be used to perform PKCS#1 OAEP encryption or decryption.

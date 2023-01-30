@@ -78,17 +78,17 @@ Maven 中央仓库是由 Maven 社区提供的仓库，其中包含了大量常�
 配置认证信息和配置远程仓库不同，远程仓库可以直接在`pom.xml`中配置，但是认证信息必须配置在`settings.xml`文件中。这是因为pom往往是被提交到代码仓库中供所有成员访问的，而`settings.xml`一般只存在于本机。因此，在`settings.xml`中配置认证信息更为安全。
 ```XML
 <settings>
- 2     ...
- 3     <!--配置远程仓库认证信息-->
- 4     <servers>
- 5         <server>
- 6             <id>releases</id>
- 7             <username>admin</username>
- 8             <password>admin123</password>
- 9         </server>
-10     </servers>
-11     ...
-12 </settings>
+      ...
+      <!--配置远程仓库认证信息-->
+      <servers>
+          <server>
+              <id>releases</id>
+              <username>admin</username>
+              <password>admin123</password>
+          </server>
+      </servers>
+     ...
+</settings>
 ```
 这里除了配置账号密码之外，值关键的就是id了，这个id要跟你在`pom.xml`里面配置的远程仓库repository的id一致，正是这个id将认证信息与仓库配置联系在了一起。
 

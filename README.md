@@ -16,6 +16,8 @@
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")
+- [maven构建生命周期](docs/java/maven-lifecycle.md "maven生命周期")
+- [Maven常用插件](docs/java/maven-plugin.md "Maven常用插件")
 
 ### 网络协议
 - [TCP/IP协议族概述](docs/network/network-summary.md "tcp/ip")

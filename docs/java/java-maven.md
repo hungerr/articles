@@ -45,7 +45,6 @@ Maven 仓库能帮助我们管理构件（主要是JAR），它就是放置所�
 Maven 仓库有三种类型：
 
 - 本地仓库（local）
-- 中央仓库（central）
 - 远程仓库（remote）
 
 ### 本地仓库
@@ -65,12 +64,29 @@ Maven 的本地仓库，在安装 Maven 后并不会创建，它是在第一次�
 </settings>
 ```
 
-### 中央仓库
-Maven 中央仓库是由 Maven 社区提供的仓库，其中包含了大量常用的库。
-
 ### 远程仓库
 
 由于最原始的本地仓库是空的，Maven必须知道至少一个可用的远程仓库，才能在执行Maven命令的时候下载到需要的构件。中央仓库就是这样一个默认的远程仓库，Maven的安装文件自带了中央仓库的配置。
+
+### 中央仓库central
+Maven 中央仓库是由 Maven 社区提供的仓库，其中包含了大量常用的库。
+官方central
+- `https://repo1.maven.org`
+- `https://repo.maven.apache.org/`
+
+```XML
+  <repositories>
+    <repository>
+      <id>central</id>
+      <name>Central Repository</name>
+      <url>https://repo.maven.apache.org/maven2</url>
+      <layout>default</layout>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+```
 
 ### 远程仓库的认证
 大部分的远程仓库不需要认证，但是如果是自己内部使用，为了安全起见，还是要配置认证信息的。

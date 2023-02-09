@@ -12,7 +12,7 @@
 - [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "WSGI")
 
 ### GO
-- [go](docs/go/go.md "Go")
+- [go配置](docs/go/go.md "Go")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")

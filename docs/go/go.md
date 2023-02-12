@@ -231,3 +231,6 @@ go mod 命令:
 
 - 你只要在项目中有 `import`，然后 `go build` 就会 `go module` 就会自动下载并添加。
 - 自己手工使用 `go get` 下载安装后，会自动写入 `go.mod`
+
+### go version
+查看版本

@@ -13,6 +13,7 @@
 
 ### GO
 - [go配置](docs/go/go.md "Go")
+- [go语法](docs/go/go-learn.md "Go语法")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")

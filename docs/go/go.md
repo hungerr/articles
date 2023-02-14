@@ -29,81 +29,6 @@ go env -w GOPROXY=https://goproxy.cn,direct
 ### GOPRIVATE
 go get 通过代理服务拉取私有仓库（企业内部 module 或托管站点上的 private 库），而代理服务不可能访问到私有仓库，会出现了 404 错误。Go1.13 版本提供了一个方便的解决方案：GOPRIVATE 环境变量。
 
-## go get
-下载包
-
-这个命令可以动态获取远程代码包，目前支持的有 BitBucket、GitHub、Google Code 和 Launchpad
-
-```GO
-go get github.com/davyxu/cellnet
-```
-地址格式: 网站域名/作者或机构/项目名
-
-下载包 并且更新`go.mod`  and downloads source code into the
-module cache
-
-To add a dependency for a package or upgrade it to its latest version:
-
-        go get example.com/pkg
-
-To upgrade or downgrade a package to a specific version:
-
-        go get example.com/pkg@v1.2.3
-
-To remove a dependency on a module and downgrade modules that require it:
-
-        go get example.com/mod@none
-
-See https://golang.org/ref/mod#go-get for details.
-
-'go get' accepts the following flags.
-
-The `-t` flag instructs get to consider modules needed to build `tests` of
-packages specified on the command line.
-
-The `-u` flag instructs get to `update` modules providing dependencies
-of packages named on the command line to use newer minor or patch
-releases when available.
-
-The `-u=patch` flag (not -u patch) also instructs get to update dependencies,
-but changes the default to select patch releases.
-
-When the `-t` and `-u` flags are used together, get will update
-test dependencies as well.
-
-The `-x` flag prints commands as they are executed. This is useful for
-debugging version control commands when a module is downloaded directly
-from a repository.
-
-## go install
-
-In earlier versions of Go, `go get` was used to build and install packages.
-Now, `go get` is dedicated to adjusting dependencies in `go.mod`. 
-
-`go install`may be used to build and install commands instead.
-
-可执行文件一般下载于`GOBIN`下，一般默认值是`$GOPATH/bin`，如果`GOPATH`未设置值则是`$HOME/go/bin`
-
-Executables in `$GOROOT` are installed in `$GOROOT/bin` or `$GOTOOLDIR` instead of `$GOBIN`
-
-When a version is specified, `go install` runs in `module-aware` mode and `ignores` the `go.mod` file in the current directory. For example:
-
-        go install example.com/pkg@v1.2.3
-        go install example.com/pkg@latest
-
-If the arguments don't have version suffixes, `go install` may run in
-`module-aware` mode or `GOPATH` mode, depending on the `GO111MODULE` environment
-variable and the presence of a `go.mod` file. See 'go help modules' for details.
-
-If `module-aware` mode is `enabled`, "go install" runs in the context of the `main`
-module.
-
-When `module-aware` mode is `disabled`, other packages are installed in the
-directory `$GOPATH/pkg/$GOOS_$GOARCH`. When `module-aware` mode is `enabled`,
-other packages are built and cached but not installed.
-
-See 'go help install' or https://golang.org/ref/mod#go-install for details.
-
 ## GO MODULE
 
 在以前，Go 语言的的包依赖管理一直都被大家所诟病，Go官方也在一直在努力为开发者提供更方便易用的包管理方案，从最初的 `GOPATH` 到 `GO VENDOR`，再到最新的 `GO Modules`
@@ -234,3 +159,108 @@ go mod 命令:
 
 ### go version
 查看版本
+
+### go build
+生成可执行文件
+编译后生成的有默认名生成的文件在当前目录或在指定目录下
+```
+go build main.go
+```
+
+### go run
+执行
+```
+go run main.go
+```
+
+## go get
+下载包
+
+这个命令可以动态获取远程代码包，目前支持的有 BitBucket、GitHub、Google Code 和 Launchpad
+
+```GO
+go get github.com/davyxu/cellnet
+```
+地址格式: 网站域名/作者或机构/项目名
+
+下载包 并且更新`go.mod`  and downloads source code into the
+module cache
+
+To add a dependency for a package or upgrade it to its latest version:
+
+        go get example.com/pkg
+
+To upgrade or downgrade a package to a specific version:
+
+        go get example.com/pkg@v1.2.3
+
+To remove a dependency on a module and downgrade modules that require it:
+
+        go get example.com/mod@none
+
+See https://golang.org/ref/mod#go-get for details.
+
+'go get' accepts the following flags.
+
+The `-t` flag instructs get to consider modules needed to build `tests` of
+packages specified on the command line.
+
+The `-u` flag instructs get to `update` modules providing dependencies
+of packages named on the command line to use newer minor or patch
+releases when available.
+
+The `-u=patch` flag (not -u patch) also instructs get to update dependencies,
+but changes the default to select patch releases.
+
+When the `-t` and `-u` flags are used together, get will update
+test dependencies as well.
+
+The `-x` flag prints commands as they are executed. This is useful for
+debugging version control commands when a module is downloaded directly
+from a repository.
+
+## go install
+
+用于构建和安装二进制文件
+
+In earlier versions of Go, `go get` was used to build and install packages.
+Now, `go get` is dedicated to adjusting dependencies in `go.mod`. 
+
+`go install`may be used to build and install commands instead.
+
+可执行文件一般下载于`GOBIN`下，一般默认值是`$GOPATH/bin`，如果`GOPATH`未设置值则是`$HOME/go/bin`
+
+Executables in `$GOROOT` are installed in `$GOROOT/bin` or `$GOTOOLDIR` instead of `$GOBIN`
+
+When a version is specified, `go install` runs in `module-aware` mode and `ignores` the `go.mod` file in the current directory. For example:
+
+        go install example.com/pkg@v1.2.3
+        go install example.com/pkg@latest
+
+If the arguments don't have version suffixes, `go install` may run in
+`module-aware` mode or `GOPATH` mode, depending on the `GO111MODULE` environment
+variable and the presence of a `go.mod` file. See 'go help modules' for details.
+
+If `module-aware` mode is `enabled`, "go install" runs in the context of the `main`
+module.
+
+When `module-aware` mode is `disabled`, other packages are installed in the
+directory `$GOPATH/pkg/$GOOS_$GOARCH`. When `module-aware` mode is `enabled`,
+other packages are built and cached but not installed.
+
+See 'go help install' or https://golang.org/ref/mod#go-install for details.
+
+```bash
+$ mkdir hello
+$ cd hello
+$ go mod init example/user/hello
+$ go install example/user/hello
+```
+以上命令会在`GOBIN`创建可执行文件
+
+以下命令效果是一样的:
+```bash
+$ go install example/user/hello
+$ go install .
+$ go install
+```

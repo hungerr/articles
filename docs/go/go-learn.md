@@ -129,13 +129,38 @@ var featureFlag bool = true
 
 ### 字符串
 
-在 Go 中，关键字 `string` 用于表示字符串数据类型。 若要初始化字符串变量，你需要在双引号`"`中定义值。 单引号`'`用于`单个字符`以及`runes`，。
+在 Go 中，关键字 `string` 用于表示字符串数据类型。 若要初始化字符串变量，你需要在双引号`"`中定义值。 
 
 ```GO
 var firstName string = "John"
 lastName := "Doe"
 fmt.Println(firstName, lastName)
 ```
+
+单引号`'`用于`单个字符`以及`runes`。单引号里面是单个字符，对应的值为该字符的 `ASCII` 值
+```GO
+rune := 'G'
+fmt.Println(rune)
+```
+
+反引号``中的字符表示其原生的意思，在反引号中的内容可以是多行内容，不支持转义。
+```GO
+func main() {
+    a := `Hello golang\n:
+I am wz.
+Good.`
+    fmt.Println(a)
+}
+```
+输出：
+```
+$ go run main.go
+Hello golang\n:
+I am random_wz.
+Good.
+```
+可以看到 `\n` 并没有被转义，而是被直接作为字符串输出
+
 有时，你需要对字符进行转义。 为此，在 Go 中，请在字符之前使用反斜杠 `\`。 例如，下面是使用转义字符的最常见示例：
 
 - `\n`：新行

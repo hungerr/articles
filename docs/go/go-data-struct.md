@@ -486,3 +486,187 @@ func main() {
     }
 }
 ```
+
+## 使用结构struct
+
+在 Go 中，可使用结构将可能构成记录的**不同字段**组合在一起。
+
+Go 中的结构也是一种数据结构，它可包含**零个或多个任意类型**的字段，并将它们表示为单个实体
+
+### 声明和初始化结构
+若要声明结构，需要使用 `struct` 关键字
+```GO
+type Employee struct {
+    ID        int
+    FirstName string
+    LastName  string
+    Address   string
+}
+```
+
+然后，可像操作其他类型一样使用新类型声明一个变量，如下所示：
+
+```GO
+var john Employee
+```
+
+如果要在声明变量的同时对其进行初始化，可按以下方式操作：
+```GO
+employee := Employee{1001, "John", "Doe", "Doe's Street"}
+```
+
+请注意，必须为结构中的每个字段指定一个值。 但这有时也可能会导致出现问题。 或者，可更具体地了解要在结构中初始化的字段：
+```GO
+employee := Employee{LastName: "Doe", FirstName: "John"}
+```
+
+如果未指定任何其他字段的值，也并不重要。 Go 将根据字段数据类型分配**默认值**。
+
+最后，可使用 `&` 运算符生成指向结构的指针，如以下代码所示：
+```GO
+package main
+
+import "fmt"
+
+type Employee struct {
+    ID        int
+    FirstName string
+    LastName  string
+    Address   string
+}
+
+func main() {
+    employee := Employee{LastName: "Doe", FirstName: "John"}
+    fmt.Println(employee)
+    employeeCopy := &employee
+    employeeCopy.FirstName = "David"
+    fmt.Println(employee)
+}
+```
+
+### 结构嵌入
+通过 Go 中的结构，可将某`struct`嵌入到另一结构中。
+```GO
+type Person struct {
+    ID        int
+    FirstName string
+    LastName  string
+    Address   string
+}
+
+type Employee struct {
+    Information Person
+    ManagerID   int
+}
+```
+但是，若要引用 Person 结构中的字段，你需要包含员工变量中的 Information 字段，如下例所示：
+
+```GO
+var employee Employee
+employee.Information.FirstName = "John"
+```
+
+如果你要像我们这样重构代码，则会破坏我们的代码。 或者，你可只包含一个与你要嵌入的结构同名的新字段，如下例所示：
+```GO
+type Employee struct {
+    Person
+    ManagerID int
+}
+```
+
+可使用以下代码进行演示：
+```GO
+package main
+
+import "fmt"
+
+type Person struct {
+    ID        int
+    FirstName string
+    LastName  string
+    Address   string
+}
+
+type Employee struct {
+    Person
+    ManagerID int
+}
+
+type Contractor struct {
+    Person
+    CompanyID int
+}
+
+func main() {
+    employee := Employee{
+        Person: Person{
+            FirstName: "John",
+        },
+    }
+    employee.LastName = "Doe"
+    fmt.Println(employee.FirstName)
+}
+```
+
+请注意如何在无需指定 Person 字段的情况下访问 Employee 结构中的 FirstName 字段，因为它会自动嵌入其所有字段。 但在你初始化结构时，必须明确要给哪个字段分配值。
+
+### 用 JSON 编码和解码结构
+最后，可使用结构来对 JSON 中的数据进行编码和解码。 Go 对 JSON 格式提供很好的支持，该格式已包含在标准库包中。
+```GO
+type Person struct {
+    ID        int    
+    FirstName string `json:"name"`
+    LastName  string
+    Address   string `json:"address,omitempty"`
+}
+```
+
+然后，若要将结构编码为 JSON，请使用 `json.Marshal` 函数。 若要将 JSON 字符串解码为数据结构，请使用 `json.Unmarshal` 函数。 下例将所有内容组合在一起，将员工数组编码为 JSON，并将输出解码为新的变量：
+
+```GO
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+)
+
+type Person struct {
+    ID        int
+    FirstName string `json:"name"`
+    LastName  string
+    Address   string `json:"address,omitempty"`
+}
+
+type Employee struct {
+    Person
+    ManagerID int
+}
+
+type Contractor struct {
+    Person
+    CompanyID int
+}
+
+func main() {
+    employees := []Employee{
+        Employee{
+            Person: Person{
+                LastName: "Doe", FirstName: "John",
+            },
+        },
+        Employee{
+            Person: Person{
+                LastName: "Campbell", FirstName: "David",
+            },
+        },
+    }
+
+    data, _ := json.Marshal(employees)
+    fmt.Printf("%s\n", data)
+
+    var decoded []Employee
+    json.Unmarshal(data, &decoded)
+    fmt.Printf("%v", decoded)
+}
+```

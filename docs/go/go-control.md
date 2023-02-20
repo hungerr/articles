@@ -187,6 +187,31 @@ func main() {
     }
 }
 ```
+可以在 Go 中编写的另一种循环模式是无限循环
+```GO
+package main
+
+import (
+    "fmt"
+    "math/rand"
+    "time"
+)
+
+func main() {
+    var num int32
+    sec := time.Now().Unix()
+    rand.Seed(sec)
+
+    for {
+        fmt.Print("Writing inside the loop...")
+        if num = rand.Int31n(10); num == 5 {
+            fmt.Println("finish!")
+            break
+        }
+        fmt.Println(num)
+    }
+}
+```
 
 - 若要使逻辑退出循环，请使用 `break` 关键字
 - 可以使用 `continue` 关键字跳过循环的当前迭代。

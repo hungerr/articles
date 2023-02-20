@@ -12,10 +12,13 @@
 - [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "WSGI")
 
 ### GO
-- [go配置](docs/go/go.md "Go")
-- [go语法](docs/go/go-learn.md "Go语法")
-- [go模块与包](docs/go/go-module.md "Go模块与包")
-- [go控制流](docs/go/go-control.md "Go控制流")
+- [Go配置](docs/go/go.md "Go")
+- [Go语法](docs/go/go-learn.md "Go语法")
+- [Go模块与包](docs/go/go-module.md "Go模块与包")
+- [Go控制流](docs/go/go-control.md "Go控制流")
+- [Go数据结构](docs/go/go-data-struct.md "Go数据结构")
+- [Go方法与接口](docs/go/go-method.md "Go方法与接口")
+- [Go并发](docs/go/goroutine.md "Go并发")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")

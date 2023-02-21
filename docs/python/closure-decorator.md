@@ -20,10 +20,10 @@ global var
 
 ```python
 >>> def foo():
-	a = 'free var'
-	def bar():
-	    print(a)
-	return bar
+        a = 'free var'
+        def bar():
+            print(a)
+        return bar
 
 >>> foo()()
 free var
@@ -62,18 +62,18 @@ free var
 ```python
 >>> a = 1
 >>> def foo():
-	print(a)
-	a += 1
+        print(a)
+        a += 1
 
 >>> foo()
 UnboundLocalError: local variable 'a' referenced before assignment
 
 >>> def foo():
-	a = 1
-	def bar():
-	    print(a)
-	    a += 1
-	return bar
+        a = 1
+        def bar():
+            print(a)
+            a += 1
+        return bar
 
 >>> foo()()
 UnboundLocalError: local variable 'a' referenced before assignment
@@ -99,12 +99,12 @@ def foo():
 
 ```python
 >>> def foo():
-	a = 1
-	def bar():
-	    nonlocal a
-	    a += 1
-	    print(a)
-	return bar
+        a = 1
+        def bar():
+            nonlocal a
+            a += 1
+            print(a)
+        return bar
 
 >>> foo()()
 2
@@ -120,6 +120,75 @@ def make_avg():
         print(sum(ls)/len(ls))
     return avg
 ```
+
+### 延迟绑定
+需要注意的一点是，python函数的作用域是由代码决定的，也就是静态的，但它们的使用是动态的，是在执行时确定的。
+```python
+>>> fs = [lambda x: x * i for i in range(4)]
+>>> for foo in fs:
+	    print(foo(1))
+
+	
+3
+3
+3
+3
+```
+当你期待结果是0的时候，结果却是3。
+
+这是因为只有在函数foo被执行的时候才会搜索变量i的值, 由于循环已结束, i指向最终值3, 所以都会得到相同的结果。
+
+在闭包中也存在相同的问题：
+
+```python
+def foo():
+    fs = []
+    for i in range(4):
+        fs.append(lambda x: x*i)
+    return fs
+for f in foo():
+    print(f(1))
+```
+返回：
+```python
+3
+3
+3
+3
+```
+
+解决方法，一个是为函数参数设置默认值：
+```python
+>>> fs = [lambda x, i=i: x * i for i in range(4)]
+>>> for f in fs:
+        print(f(1))
+```
+
+另外就是使用闭包了：
+```python
+>>> def foo(i):
+        return lambda x: x * i
+ 
+>>> fs = [foo(i) for i in range(4)]
+>>> for f in fs:
+        print(f(1))
+```
+
+或者：
+```PYTHON
+>>> for f in map(lambda i: lambda x: i*x, range(4)):
+        print(f(1))
+```
+
+使用闭包就很类似于偏函数了，也可以使用偏函数:
+
+```PYTHON
+>>> fs = [functools.partial(lambda x, i: x * i, i) for i in range(4)]
+>>> for f in fs:
+        print(f(1))
+```
+
+这样自由变量i都会优先绑定到闭包函数上。
 
 ### 装饰器
 

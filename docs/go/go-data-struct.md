@@ -132,6 +132,36 @@ func main() {
 [October November December] 3 3
 ```
 
+切片的零值是 `nil`。
+
+`nil` 切片的长度和容量为 0 且没有底层数组
+```GO
+package main
+
+import "fmt"
+
+func main() {
+	var s []int
+	fmt.Println(s, len(s), cap(s))
+	if s == nil {
+		fmt.Println("nil!")
+	}
+}
+```
+
+`make` 函数会分配一个元素为零值的数组并返回一个引用了它的切片：
+```GO
+a := make([]int, 5)  // len(a)=5
+```
+
+要指定它的容量，需向 make 传入第三个参数：
+```GO
+b := make([]int, 0, 5) // len(b)=0, cap(b)=5
+
+b = b[:cap(b)] // len(b)=5, cap(b)=5
+b = b[1:]      // len(b)=4, cap(b)=4
+```
+
 ### 切片项
 
 Go 支持切片运算符 s[i:p]
@@ -142,7 +172,7 @@ Go 支持切片运算符 s[i:p]
 
 切片的大小不是固定的，而是动态的。 创建切片后，可向其添加更多元素，这样切片就会扩展
 
-Go 提供了内置函数 `append(slice, element)`，便于你向切片添加元素。 将要修改的切片和要追加的元素作为值发送给该函数。 然后，append 函数会返回一个新的切片，将其存储在变量中
+Go 提供了内置函数 `func append(s []T, vs ...T) []T`，便于你向切片添加元素。 将要修改的切片和要追加的元素作为值发送给该函数。 然后，`append` 函数会返回一个新的切片，将其存储在变量中
 ```GO
 package main
 
@@ -290,7 +320,7 @@ func main() {
 map[bob:31 john:32]
 ```
 
-请注意，我们已向已初始化的映射添加了项。 但如果尝试使用 nil 映射执行相同操作，会出现错误。 例如，以下代码将不起作用：
+映射的零值为 nil。 如果尝试使用 nil 映射执行相同操作，会出现错误。 例如，以下代码将不起作用：
 
 ```GO
 package main
@@ -543,6 +573,8 @@ func main() {
     fmt.Println(employee)
 }
 ```
+
+如果我们有一个指向结构体的指针 `p`，那么可以通过 `(*p).X` 来访问其字段 `X`。不过这么写太啰嗦了，所以语言也允许我们使用隐式间接引用，直接写 `p.X` 就可以。
 
 ### 结构嵌入
 通过 Go 中的结构，可将某`struct`嵌入到另一结构中。

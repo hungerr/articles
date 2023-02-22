@@ -7,9 +7,10 @@
 
 ### Python
 - [WSGI协议简介](docs/python/wsgi-pep3333.md "WSGI")
-- [装饰器与闭包](docs/python/closure-decorator.md "WSGI")
+- [装饰器与闭包](docs/python/closure-decorator.md "装饰器与闭包")
 - [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "why python so slow")
-- [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "WSGI")
+- [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "Flask SqlAlchemy动态建表")
+- [Python并发编程](docs/python/threading.md "Python并发编程")
 
 ### GO
 - [Go配置](docs/go/go.md "Go")
@@ -19,6 +20,7 @@
 - [Go数据结构](docs/go/go-data-struct.md "Go数据结构")
 - [Go方法与接口](docs/go/go-method.md "Go方法与接口")
 - [Go并发](docs/go/goroutine.md "Go并发")
+- [Go类型转换与类型推导](docs/go/go-type.md "Go类型转换与类型推导")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")

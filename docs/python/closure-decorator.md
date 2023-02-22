@@ -157,7 +157,7 @@ for f in foo():
 3
 ```
 
-解决方法，一个是为函数参数设置默认值：
+解决方法，一个是为函数参数设置默认值 将值保存在lambdas的局部变量中
 ```python
 >>> fs = [lambda x, i=i: x * i for i in range(4)]
 >>> for f in fs:

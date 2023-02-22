@@ -67,9 +67,16 @@ func main() {
 
 代码中加入静态值，这称为常量
 
+常量的声明与变量类似，只不过是使用 const 关键字。
+
+常量可以是字符、字符串、布尔值或数值。
+
+常量不能用 `:=` 语法声明。
+
 ```GO
 const HTTPStatusOK = 200
 ```
+
 与变量一样，Go 可以通过分配给常量的值推断出类型。 在 Go 中，常量名称通常以**混合大小写字母**或**全部大写字母**书写
 ```GO
 const (
@@ -77,6 +84,31 @@ const (
     StatusConnectionReset = 1
     StatusOtherError      = 2
 )
+```
+
+**数值常量**是高精度的值。
+
+一个未指定类型的常量由上下文来决
+```GO
+package main
+
+import "fmt"
+
+const (
+	Big = 1 << 100
+	Small = Big >> 99
+)
+
+func needInt(x int) int { return x*10 + 1 }
+func needFloat(x float64) float64 {
+	return x * 0.1
+}
+
+func main() {
+	fmt.Println(needInt(Small))
+	fmt.Println(needFloat(Small))
+	fmt.Println(needFloat(Big))
+}
 ```
 
 ## 基本数据类型
@@ -94,9 +126,13 @@ Go 有四类数据类型：
 
 一般来说，定义整数类型的关键字是 `int`。 但 Go 还提供了 `int8`、`int16`、`int32` 和 `int64` 类型，其大小分别为 8、16、32 或 64 位的整数。 使用 32 位操作系统时，如果只是使用 int，则大小通常为 `32` 位。 在 64 位系统上，int 大小通常为 `64` 位。 但是，此行为可能因计算机而不同。 可以使用 `uint`。 但是，只有在出于某种原因需要将值表示为无符号数字的情况下，才使用此类型。 此外，Go 还提供 `uint8`、`uint16`、`uint32` 和 `uint64` 类型。
 
+int, uint 和 uintptr 在 32 位系统上通常为 32 位宽，在 64 位系统上则为 64 位宽。 当你需要一个整数值时应使用 `int` 类型，除非你有特殊的理由使用固定大小或无符号的整数类型。
+
 需要强制转换时，你需要进行显式转换。 如果尝试在不同类型之间执行数学运算，将会出现错误
 
-`rune` 是 `int32` 数据类型的别名,它用于表示 Unicode 字符
+`byte` 是 `uint8` 数据类型的别名
+
+`rune` 是 `int32` 数据类型的别名,表示一个 Unicode 码点
 ```GO
 rune := 'G'
 fmt.Println(rune)
@@ -205,6 +241,31 @@ func main() {
 }
 ```
 
+## 指针
+
+Go 拥有指针。指针保存了值的内存地址。
+
+类型 `*T` 是指向 `T` 类型值的指针。其零值为 `nil`。
+```GO
+var p *int
+```
+
+`&` 操作符会生成一个指向其操作数的指针。
+```GO
+i := 42
+p = &i
+```
+
+`*` 操作符表示指针指向的底层值。
+```GO
+fmt.Println(*p) // 通过指针 p 读取 i
+*p = 21         // 通过指针 p 设置 i
+```
+
+这也就是通常所说的“间接引用”或“重定向”。
+
+与 C 不同，Go 没有指针运算。
+
 ## 函数
 
 ### main 函数
@@ -249,7 +310,14 @@ func sum(number1 string, number2 string) int {
 }
 ```
 
-在 Go 中，你还可以为函数的**返回值**设置名称，将其当作一个**变量**
+当连续两个或多个函数的已命名形参类型相同时，除最后一个类型以外，其它都可以省略
+```GO
+func add(x, y int) int {
+	return x + y
+}
+```
+
+在 Go 中，你还可以为函数的**返回值**设置名称，将其当作一个**变量**，它们会被视作定义在函数顶部的变量
 ```GO
 func sum(number1 string, number2 string) (result int) {
     int1, _ := strconv.Atoi(number1)
@@ -271,6 +339,7 @@ func calc(number1 string, number2 string) (sum int, mul int) {
     return
 }
 ```
+直接返回语句应当仅用在这样的短函数中。在长的函数中它们会影响代码的可读性。
 
 ### 更改函数参数值（指针）
 

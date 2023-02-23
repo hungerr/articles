@@ -367,3 +367,71 @@ func updateName(name *string) {
     *name = "David"
 }
 ```
+
+### 函数值
+
+函数也是值。它们可以像其它值一样传递。
+
+函数值可以用作函数的参数或返回值。
+
+函数表达式function literal代表一个匿名函数
+```GO
+FunctionLit = "func" Signature FunctionBody .
+func(a, b int, z float64) bool { return a*b < int(z) }
+f := func(x, y int) int { return x + y }
+func(ch chan int) { ch <- ACK }(replyChan)
+```
+
+函数表达式不能有类型参数
+
+函数表达式可以赋值给变量或者直接执行
+
+```GO
+package main
+
+import (
+	"fmt"
+	"math"
+)
+
+func compute(fn func(float64, float64) float64) float64 {
+	return fn(3, 4)
+}
+
+func main() {
+	hypot := func(x, y float64) float64 {
+		return math.Sqrt(x*x + y*y)
+	}
+	fmt.Println(hypot(5, 12))
+
+	fmt.Println(compute(hypot))
+	fmt.Println(compute(math.Pow))
+}
+```
+
+### 函数的闭包
+Go 函数可以是一个闭包。闭包是一个函数值，它引用了其函数体之外的变量。该函数可以访问并赋予其引用的变量的值，换句话说，该函数被这些变量“绑定”在一起。
+
+```GO
+package main
+
+import "fmt"
+
+func adder() func(int) int {
+	sum := 0
+	return func(x int) int {
+		sum += x
+		return sum
+	}
+}
+
+func main() {
+	pos, neg := adder(), adder()
+	for i := 0; i < 10; i++ {
+		fmt.Println(
+			pos(i),
+			neg(-2*i),
+		)
+	}
+}
+```

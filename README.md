@@ -21,6 +21,7 @@
 - [Go方法与接口](docs/go/go-method.md "Go方法与接口")
 - [Go并发](docs/go/goroutine.md "Go并发")
 - [Go类型转换与类型推导](docs/go/go-type.md "Go类型转换与类型推导")
+- [Go文件操作](docs/go/go-file.md "Go文件操作")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")

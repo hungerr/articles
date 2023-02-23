@@ -128,7 +128,9 @@ SUCCESS: https://dev.azure.com is up and running!
 Done! It took 3.0031011 seconds!
 ```
 
-在`goroutine`之间传递信息需要`Channel`
+要保证goroutine的完成 可以使用`Channel`
+
+`Channel`在`goroutine`之间传递信息
 
 ## Channel
 
@@ -169,7 +171,7 @@ doSomethingForAWhile()
 close(ch)
 ```
 
-### 非缓冲
+### 非缓冲channel
 若信道是不带缓冲的，那么在接收者收到值前， 发送者会一直阻塞
 
 使用无缓冲 channel 时，可以控制可并发运行的 goroutine 的数量。 例如，你可能要对 API 进行调用，并且想要控制每秒执行的调用次数。 否则，你可能会被阻止。
@@ -316,7 +318,7 @@ func checkAPI(api string, ch chan string) {
 }
 ```
 
-### 有缓冲
+### 缓冲channel
 
 有缓冲 channel 将发送和接收操作解耦。 它们不会阻止程序，但你必须小心使用，因为可能最终会导致死锁（如前文所述）
 
@@ -447,3 +449,138 @@ func Serve(clientRequests chan *Request, quit chan bool) {
     <-quit  // 等待通知退出。
 }
 ```
+
+### Channels of channels
+
+`channel` is a first-class value
+
+它可以被分配并像其它值到处传递.这种特性通常被用来实现安全、并行的多路分解。
+
+每一个请求都能为其回应提供自己的channel
+```GO
+type Request struct {
+    args        []int
+    f           func([]int) int
+    resultChan  chan int
+}
+
+func sum(a []int) (s int) {
+    for _, v := range a {
+        s += v
+    }
+    return
+}
+
+request := &Request{[]int{3, 4, 5}, sum, make(chan int)}
+// Send request
+clientRequests <- request
+// Wait for response.
+fmt.Printf("answer: %d\n", <-request.resultChan)
+```
+
+服务端:
+```GO
+func handle(queue chan *Request) {
+    for req := range queue {
+        req.resultChan <- req.f(req.args)
+    }
+}
+```
+This code is a framework for a rate-limited, parallel, non-blocking RPC system, and there's not a mutex in sight.
+
+### Parallelization并行
+
+多 CPU 核心上实现并行计算
+
+如果计算过程能够被分为几块 可独立执行的过程，它就可以在每块计算结束时向信道发送信号，从而实现并行处理。
+
+对一系列向量项进行极耗资源的操作， 而每个项的值计算是完全独立的。
+```GO
+type Vector []float64
+
+// Apply the operation to v[i], v[i+1] ... up to v[n-1].
+func (v Vector) DoSome(i, n int, u Vector, c chan int) {
+    for ; i < n; i++ {
+        v[i] += u.Op(v[i])
+    }
+    c <- 1    // signal that this piece is done
+}
+```
+
+我们在循环中启动了独立的处理块，每个 CPU 将执行一个处理。 它们有可能以乱序的形式完成并结束，但这没有关系； 我们只需在所有 Go 协程开始后接收，并统计信道中的完成信号即可。
+```GO
+const numCPU = 4 // number of CPU cores
+
+func (v Vector) DoAll(u Vector) {
+    c := make(chan int, numCPU)  // Buffering optional but sensible.
+    for i := 0; i < numCPU; i++ {
+        go v.DoSome(i*len(v)/numCPU, (i+1)*len(v)/numCPU, u, c)
+    }
+    // Drain the channel.
+    for i := 0; i < numCPU; i++ {
+        <-c    // wait for one task to complete
+    }
+    // All done.
+}
+```
+
+除了直接设置 numCPU 常量值以外，我们还可以向 runtime 询问一个合理的值
+
+可以返回硬件 CPU 上的核心数量
+```GO
+var numCPU = runtime.NumCPU()
+```
+
+当前最大可用的 CPU 数量
+
+`runtime.GOMAXPROCS`可以设置或者返回之前设置的最大可用的 CPU 数量。
+
+默认情况下使用 runtime.NumCPU 的值。可以通过设置同样名称的环境变量改变，或者调用此函数并传参正整数进行改变。
+
+传参 0 的话会直接返回当前值：
+
+```GO
+var numCPU = runtime.GOMAXPROCS(0)
+```
+
+### A leaky buffer 限流设计
+
+客户端保存了一个空闲链表，使用一个带缓冲信道表示。若信道为空，就会分配新的缓冲区。 一旦消息缓冲区就绪，它将通过 serverChan 被发送到服务器。
+```GO
+var freeList = make(chan *Buffer, 100)
+var serverChan = make(chan *Buffer)
+
+func client() {
+    for {
+        var b *Buffer
+        // Grab a buffer if available; allocate if not.
+        select {
+        case b = <-freeList:
+            // Got one; nothing more to do.
+        default:
+            // None free, so allocate a new one.
+            b = new(Buffer)
+        }
+        load(b)              // Read next message from the net.
+        serverChan <- b      // Send to server.
+    }
+}
+```
+
+服务器从客户端循环接收每个消息，处理它们，并将缓冲区返回给空闲列表。
+```GO
+func server() {
+    for {
+        b := <-serverChan    // Wait for work.
+        process(b)
+        // Reuse buffer if there's room.
+        select {
+        case freeList <- b:
+            // Buffer on free list; nothing more to do.
+        default:
+            // Free list full, just carry on.
+        }
+    }
+}
+```
+客户端试图从 `freeList` 中获取缓冲区；若没有缓冲区可用， 它就将分配一个新的。服务器将 `b` 放回空闲列表 `freeList` 中直到列表已满，此时缓冲区将被丢弃，并被垃圾回收器回收。（select 语句中的 default 子句在没有条件符合时执行，这也就意味着 selects 永远不会被阻塞。）依靠带缓冲的信道和垃圾回收器的记录， 我们仅用短短几行代码就构建了一个leaky buffer

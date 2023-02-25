@@ -532,3 +532,283 @@ type FileInfo interface {
 	Sys() any           // underlying data source (can return nil)
 }
 ```
+
+## 流式读取
+
+包`bufio`提供buffered I/O
+
+### type Reader
+
+`NewReader`返回一个具有默认大小(`4096`)buffer的`Reader`
+```GO
+// NewReader returns a new Reader whose buffer has the default size.
+func NewReader(rd io.Reader) *Reader {
+	return NewReaderSize(rd, defaultBufSize)
+}
+```
+
+要修改默认大小可以使用`NewReaderSize`方法
+
+`NewReader` 接收  具有`Read`方法的接口实现当做参数
+```GO
+type Reader interface {
+	Read(p []byte) (n int, err error)
+}
+```
+
+### func (b *Reader) Read(p []byte) (n int, err error)
+
+分块读取
+```GO
+func ReadFile(filepath string) error {
+	f, err := os.Open(filepath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	buffer := bufio.NewReader(f)
+	p := make([]byte, 8)
+	for {
+		n, err := buffer.Read(p)
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+			return err
+		}
+		fmt.Println(string(p[:n])) // 最后一次读取的时候，有可能重复 需取前n个
+	}
+}
+```
+
+### 按特定分隔符分割读取ReadString/ReadBytes
+
+对于含有`\n`换行符等的文件可以使用`ReadString`或者`ReadBytes`分割读取
+```GO
+func ReadFile(filepath string) error {
+	f, err := os.Open(filepath)
+	if err != nil {
+		return err
+	}
+    defer f.Close()
+	buffer := bufio.NewReader(f)
+	for {
+		line, err := buffer.ReadString('\n')
+		fmt.Print(line)
+		switch {
+		case err == io.EOF:
+			return nil
+		case err != nil:
+			return err
+		}
+	}
+}
+
+```
+
+`ReadBytes`方法类似 读取的是`[]byte`
+
+### 其他方法
+
+- Buffered b the number of bytes that can be read from the current buffer.
+- Discard 略过n个数据
+- Peek 返回n个数据  但停留原位置
+- ReadByte 读取一个byte
+- ReadRune 读取一个rune
+- ReadSlice 读取到分隔符为止
+
+## type Scanner
+
+`Scanner`为读取类似于文件的有特定换行符之类的数据提供更方便的方式
+
+分割函数`split function`：
+```GO
+// SplitFunc is the signature of the split function used to tokenize the
+// input. The arguments are an initial substring of the remaining unprocessed
+// data and a flag, atEOF, that reports whether the Reader has no more data
+// to give. The return values are the number of bytes to advance the input
+// and the next token to return to the user, if any, plus an error, if any.
+//
+// Scanning stops if the function returns an error, in which case some of
+// the input may be discarded. If that error is ErrFinalToken, scanning
+// stops with no error.
+//
+// Otherwise, the Scanner advances the input. If the token is not nil,
+// the Scanner returns it to the user. If the token is nil, the
+// Scanner reads more data and continues scanning; if there is no more
+// data--if atEOF was true--the Scanner returns. If the data does not
+// yet hold a complete token, for instance if it has no newline while
+// scanning lines, a SplitFunc can return (0, nil, nil) to signal the
+// Scanner to read more data into the slice and try again with a
+// longer slice starting at the same point in the input.
+//
+// The function is never called with an empty data slice unless atEOF
+// is true. If atEOF is true, however, data may be non-empty and,
+// as always, holds unprocessed text.
+type SplitFunc func(data []byte, atEOF bool) (advance int, token []byte, err error)
+```
+函数返回要前进的数字`advance` 读取的`token` 以及`err`
+
+`err`不为空时 停止Scanning
+
+如果err为`ErrFinalToken`  读取完成 停止Scanning
+
+如果token不为nil 向用户返回token
+
+如果token为nil 分两种情况 
+- atEOF == false  可以返回(0, nil, nil)让Scanner继续读
+- atEOF == true  读取完成 返回
+
+默认`split function`是`ScanLines` 可以看到默认的分隔符是`\n` 
+```GO
+// ScanLines is a split function for a Scanner that returns each line of
+// text, stripped of any trailing end-of-line marker. The returned line may
+// be empty. The end-of-line marker is one optional carriage return followed
+// by one mandatory newline. In regular expression notation, it is `\r?\n`.
+// The last non-empty line of input will be returned even if it has no
+// newline.
+func ScanLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	if atEOF && len(data) == 0 {
+		return 0, nil, nil
+	}
+	if i := bytes.IndexByte(data, '\n'); i >= 0 {
+		// We have a full newline-terminated line.
+		return i + 1, dropCR(data[0:i]), nil
+	}
+	// If we're at EOF, we have a final, non-terminated line. Return it.
+	if atEOF {
+		return len(data), dropCR(data), nil
+	}
+	// Request more data.
+	return 0, nil, nil
+}
+```
+
+常用的`split function`还有`ScanWords` 按word分割
+```GO
+// isSpace reports whether the character is a Unicode white space character.
+// We avoid dependency on the unicode package, but check validity of the implementation
+// in the tests.
+func isSpace(r rune) bool {
+	if r <= '\u00FF' {
+		// Obvious ASCII ones: \t through \r plus space. Plus two Latin-1 oddballs.
+		switch r {
+		case ' ', '\t', '\n', '\v', '\f', '\r':
+			return true
+		case '\u0085', '\u00A0':
+			return true
+		}
+		return false
+	}
+	// High-valued ones.
+	if '\u2000' <= r && r <= '\u200a' {
+		return true
+	}
+	switch r {
+	case '\u1680', '\u2028', '\u2029', '\u202f', '\u205f', '\u3000':
+		return true
+	}
+	return false
+}
+
+// ScanWords is a split function for a Scanner that returns each
+// space-separated word of text, with surrounding spaces deleted. It will
+// never return an empty string. The definition of space is set by
+// unicode.IsSpace.
+func ScanWords(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	// Skip leading spaces.
+	start := 0
+	for width := 0; start < len(data); start += width {
+		var r rune
+		r, width = utf8.DecodeRune(data[start:])
+		if !isSpace(r) {
+			break
+		}
+	}
+	// Scan until space, marking end of word.
+	for width, i := 0, start; i < len(data); i += width {
+		var r rune
+		r, width = utf8.DecodeRune(data[i:])
+		if isSpace(r) {
+			return i + width, data[start:i], nil
+		}
+	}
+	// If we're at EOF, we have a final, non-empty, non-terminated word. Return it.
+	if atEOF && len(data) > start {
+		return len(data), data[start:], nil
+	}
+	// Request more data.
+	return start, nil, nil
+}
+```
+
+使用的时候 先`Split` 然后循环`Scan` 使用`Text`或者`Bytes`取输出 输出是不包括分隔符的:
+```GO
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+func main() {
+	// An artificial input source.
+	const input = "Now is the winter of our discontent,\nMade glorious summer by this sun of York.\n"
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	// Set the split function for the scanning operation.
+	scanner.Split(bufio.ScanWords)
+	// Count the words.
+	count := 0
+	for scanner.Scan() {
+		fmt.Print(scanner.Text())
+		count++
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading input:", err)
+	}
+	fmt.Printf("%d\n", count)
+}
+```
+
+定制分割函数:
+```GO
+package main
+
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
+
+func onComma(data []byte, atEOF bool) (advance int, token []byte, err error) {
+	for i := 0; i < len(data); i++ {
+		if data[i] == ',' {
+			return i + 1, data[:i], nil
+		}
+	}
+	if !atEOF {
+		return 0, nil, nil
+	}
+	// There is one final token to be delivered, which may be the empty string.
+	// Returning bufio.ErrFinalToken here tells Scan there are no more tokens after this
+	// but does not trigger an error to be returned from Scan itself.
+	return 0, data, bufio.ErrFinalToken
+}
+
+func main() {
+	// Comma-separated list; last entry is empty.
+	const input = "1,2,3,4,"
+	scanner := bufio.NewScanner(strings.NewReader(input))
+	scanner.Split(onComma)
+	// Scan.
+	for scanner.Scan() {
+		fmt.Printf("%q ", scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading input:", err)
+	}
+}
+```

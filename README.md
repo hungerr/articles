@@ -22,6 +22,7 @@
 - [Go并发](docs/go/goroutine.md "Go并发")
 - [Go类型转换与类型推导](docs/go/go-type.md "Go类型转换与类型推导")
 - [Go文件操作](docs/go/go-file.md "Go文件操作")
+- [Go泛型](docs/go/go-generics.md "Go泛型")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")
@@ -117,6 +118,7 @@
 
 ### 加密算法
 - [RSA](docs/encrypt/rsa.md "RSA")
+- [python RSA](docs/encrypt/python-rsa.md "python RSA")
 
 ### Tips
 - [tips](docs/tips/tips.md "Tips")

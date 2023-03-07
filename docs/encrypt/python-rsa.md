@@ -4,18 +4,21 @@
 
 `OAEP= Optimal Asymmetric Encryption Padding`
 
-RSA的加密机制有两种方案一个是`RSAES-OAEP`，另一个`RSAES-PKCS1-v1_5`。`PKCS#1`推荐在新的应用中使用`RSAES- OAEP`，保留`RSAES-PKCS#1-v1_5`跟老的应用兼容。它们两的区别仅仅在于加密前编码的方式不同。而加密前的编码是为了提供了抵抗各种活动的敌对攻击的安全机制。
+RSA的加密机制有两种方案一个是`RSAES-OAEP`，另一个`RSAES-PKCS1-v1_5`。
+
+`PKCS#1`推荐在新的应用中使用`RSAES-OAEP`，保留`RSAES-PKCS#1-v1_5`跟老的应用兼容。它们的区别仅仅在于加密前编码的方式不同。而加密前的编码是为了提供了抵抗各种活动的敌对攻击的安全机制。
 
 ### RSASSA-PSS 和 RSASSA-PKCS1-v1_5
 
 `PSS = Probabilistic Signature Scheme`
 
-`PKCS#1`的签名机制也有种方案：`RSASSA-PSS`和`RSASSA-PKCS1-v1_5`。同样，推荐`RSASSA-PSS`用于新的应用,而`RSASSA-PKCS1-v1_5`只用于兼容老的应用。
+`PKCS#1`的签名机制也有种方案：`RSASSA-PSS`和`RSASSA-PKCS1-v1_5`。
 
+同样，推荐`RSASSA-PSS`用于新的应用,而`RSASSA-PKCS1-v1_5`只用于兼容老的应用。
 
 ### rsa
 
-rsa包使用RSAES-PKCS1-v1_5加密
+rsa包使用`RSAES-PKCS1-v1_5`加密
 
 ```PYTHON
 import base64
@@ -80,7 +83,7 @@ file_out.write(public_key)
 file_out.close()
 ```
 
-加密PKCS1_v1_5方式：
+加密`PKCS1_v1_5`方式：
 ```python
 import base64
 
@@ -102,7 +105,7 @@ Ao8eayMp6FcvNucIpUndo1X8dKMv3Y26ZQIDAQAB'''
     return encrpt
 ```
 
-PKCS1_OAEP方式：
+`PKCS1_OAEP`方式：
 ```PYTHON
 import base64
 
@@ -187,9 +190,9 @@ RSA/ECB/OEAPWithSHA-1AndMGF1Padding
 
 ## Note
 
-注意hashAlgo需一致
+注意`hashAlgo`需一致
 
-python PKCS1_OAEP的new方法：
+python `PKCS1_OAEP`的new方法：
 ```PYTHON
 def new(key, hashAlgo=None, mgfunc=None, label=b'', randfunc=None):
     """Return a cipher object :class:`PKCS1OAEP_Cipher` that can be used to perform PKCS#1 OAEP encryption or decryption.

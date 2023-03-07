@@ -450,6 +450,74 @@ func Serve(clientRequests chan *Request, quit chan bool) {
 }
 ```
 
+### Channel 方向
+
+Go 中的通道具有另一个有趣的功能。 在使用通道作为函数的参数时，可以指定通道是要“发送”数据还是“接收”数据
+
+```GO
+chan<- int // it's a channel to only send data
+<-chan int // it's a channel to only receive data
+```
+通过仅接收的 channel 发送数据时，在编译程序时会出现错误。
+
+
+### select
+
+```GO
+SelectStmt = "select" "{" { CommClause } "}" .
+CommClause = CommCase ":" StatementList .
+CommCase   = "case" ( SendStmt | RecvStmt ) | "default" .
+SendStmt   = Channel "<-" Expression .
+RecvStmt   = [ ExpressionList "=" | IdentifierList ":=" ] RecvExpr .
+RecvExpr   = Expression .
+```
+每个case可以是SendStmt或者RecvStmt
+
+RecvStmt 可以吧RecvExpr的结果赋值给一个或两个变量
+
+RecvExpr 必须是个receive operation
+
+使用 select 关键字可以与多个通道同时交互
+
+-  channel表达式会立即执行
+- 如果多个chan可以使用 随机选择一个接受或者发送数据
+- 如果只有一个chan可以使用 选择此chan
+- 如果无chan可使用 有default 执行default 无default则一直阻塞
+
+
+```GO
+var a []int
+var c, c1, c2, c3, c4 chan int
+var i1, i2 int
+select {
+case i1 = <-c1:
+	print("received ", i1, " from c1\n")
+case c2 <- i2:
+	print("sent ", i2, " to c2\n")
+case i3, ok := (<-c3):  // same as: i3, ok := <-c3
+	if ok {
+		print("received ", i3, " from c3\n")
+	} else {
+		print("c3 is closed\n")
+	}
+case a[f()] = <-c4:
+	// same as:
+	// case t := <-c4
+	//	a[f()] = t
+default:
+	print("no communication\n")
+}
+
+for {  // send random sequence of bits to c
+	select {
+	case c <- 0:  // note: no statement, no fallthrough, no folding of cases
+	case c <- 1:
+	}
+}
+
+select {}  // block forever
+```
+
 ### Channels of channels
 
 `channel` is a first-class value
@@ -564,7 +632,7 @@ func client() {
         load(b)              // Read next message from the net.
         serverChan <- b      // Send to server.
     }
-}
+} 
 ```
 
 服务器从客户端循环接收每个消息，处理它们，并将缓冲区返回给空闲列表。

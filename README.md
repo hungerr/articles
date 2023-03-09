@@ -15,6 +15,8 @@
 ### GO
 - [Go配置](docs/go/go.md "Go")
 - [Go语法](docs/go/go-learn.md "Go语法")
+- [Effective Go](docs/go/effective-go.md "Effective Go")
+- [Go函数](docs/go/go-func.md "Go函数")
 - [Go模块与包](docs/go/go-module.md "Go模块与包")
 - [Go控制流](docs/go/go-control.md "Go控制流")
 - [Go数据结构](docs/go/go-data-struct.md "Go数据结构")

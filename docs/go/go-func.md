@@ -179,3 +179,23 @@ func main() {
 	}
 }
 ```
+
+## init 函数
+每个源文件都可以通过定义自己的无参数 `init` 函数来设置一些必要的状态。 （其实每个文件都可以拥有多个 `init` 函数。）而它的结束就意味着初始化结束： 只有该包中的所有变量声明都通过它们的初始化器求值后 `init` 才会被调用， 而包中的变量只有在所有已导入的包都被初始化后才会被求值。
+
+除了那些不能被表示成声明的初始化外，`init` 函数还常被用在程序真正开始执行前，检验或校正程序的状态。
+```GO
+func init() {
+    if user == "" {
+        log.Fatal("$USER not set")
+    }
+    if home == "" {
+        home = "/home/" + user
+    }
+    if gopath == "" {
+        gopath = home + "/go"
+    }
+    // gopath 可通过命令行中的 --gopath 标记覆盖掉。
+    flag.StringVar(&gopath, "gopath", gopath, "override default GOPATH")
+}
+```

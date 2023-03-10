@@ -275,3 +275,187 @@ map[string]int{"CST":-21600, "EST":-18000, "MST":-25200, "PST":-28800, "UTC":0}
 当遇到 `string` 或 `[]byte` 值时， 可使用 `%q` 产生带引号的字符串；而格式 `%#q` 会尽可能使用反引号。 （`%q` 格式也可用于整数和符文，它会产生一个带单引号的符文常量。） 此外，`%x` 还可用于字符串、字节数组以及整数，并生成一个很长的`十六进制字符串`， 而带空格的格式（`% x`）还会在字节之间插入空格。
 
 另一种实用的格式是 `%T`，它会打印某个值的类型。
+
+## 初始化
+
+### 常量
+
+Go 中的常量就是不变量。它们在编译时创建，即便它们可能是函数中定义的局部变量。 常量只能是数字、字符（符文）、字符串或布尔值。由于编译时的限制， 定义它们的表达式必须也是可被编译器求值的常量表达式。例如 `1<<3` 就是一个常量表达式，而 `math.Sin(math.Pi/4)` 则不是，因为对 `math.Sin` 的函数调用在运行时才会发生。
+
+### 变量
+
+变量能像常量一样初始化，而且可以初始化为一个可在运行时得出结果的普通表达式。
+```GO
+var (
+    home   = os.Getenv("HOME")
+    user   = os.Getenv("USER")
+    gopath = os.Getenv("GOPATH")
+)
+```
+
+### init 函数
+
+最后，每个源文件都可以通过定义自己的无参数 init 函数来设置一些必要的状态。 （其实每个文件都可以拥有多个 init 函数。）而它的结束就意味着初始化结束： 只有该包中的所有变量声明都通过它们的初始化器求值后 init 才会被调用， 而包中的变量只有在所有已导入的包都被初始化后才会被求值。
+
+除了那些不能被表示成声明的初始化外，init 函数还常被用在程序真正开始执行前，检验或校正程序的状态。
+```GO
+func init() {
+    if user == "" {
+        log.Fatal("$USER not set")
+    }
+    if home == "" {
+        home = "/home/" + user
+    }
+    if gopath == "" {
+        gopath = home + "/go"
+    }
+    // gopath 可通过命令行中的 --gopath 标记覆盖掉。
+    flag.StringVar(&gopath, "gopath", gopath, "override default GOPATH")
+}
+```
+
+## 空白标识符 `_`
+
+若某次赋值需要匹配多个左值，但其中某个变量不会被程序使用， 那么用空白标识符来代替该变量可避免创建无用的变量，并能清楚地表明该值将被丢弃。 例如，当调用某个函数时，它会返回一个值和一个错误，但只有错误很重要， 那么可使用空白标识符来丢弃无关的值。
+```GO
+if _, err := os.Stat(path); os.IsNotExist(err) {
+    fmt.Printf("%s does not exist\n", path)
+}
+```
+
+### 未使用的导入和变量
+
+而在程序开发过程中，经常会产生未使用的导入和变量。虽然以后会用到它们， 但为了完成编译又不得不删除它们才行，这很让人烦恼。空白标识符就能提供一个工作空间。
+
+```GO
+package main
+
+import (
+    "fmt"
+    "io"
+    "log"
+    "os"
+)
+
+var _ = fmt.Printf  // 用于调试，结束时删除。
+var _ io.Reader    // 用于调试，结束时删除。
+
+func main() {
+    fd, err := os.Open("test.go")
+    if err != nil {
+        log.Fatal(err)
+    }
+    // TODO: use fd.
+    _ = fd
+}
+```
+
+### 为辅助作用而导入
+
+像前例中 fmt 或 io 这种未使用的导入总应在最后被使用或移除： 空白赋值会将代码标识为工作正在进行中。但有时导入某个包只是为了其辅助作用， 而没有任何明确的使用。例如，在 net/http/pprof 包的 init 函数中记录了 HTTP 处理程序的调试信息。它有个可导出的 API， 但大部分客户端只需要该处理程序的记录和通过 Web 页面访问数据。只为了其辅助作用来导入该包， 只需将包重命名为空白标识符：
+```GO
+import _ "net/http/pprof"
+```
+
+这种导入格式能明确表示该包是为其辅助作用而导入的，因为没有其它使用该包的可能： 在此文件中，它没有名字。（若它有名字而我们没有使用，编译器就会拒绝该程序。）
+
+### 接口检查
+就像我们在前面接口中讨论的那样， 一个类型无需显式地声明它实现了某个接口。取而代之，该类型只要实现了某个接口的方法， 其实就实现了该接口。在实践中，大部分接口转换都是静态的，因此会在编译时检测。 例如，将一个 *os.File 传入一个需要 io.Reader 的函数将不会被编译，除非该 *os.File 实现了 io.Reader 接口。
+
+尽管有些接口检查会在运行时进行。encoding/json 包中就有个实例它定义了一个 Marshaler 接口。当 JSON 编码器接收到一个实现了该接口的值，那么该编码器就会调用该值的编组方法， 将其转换为 JSON，而非进行标准的类型转换。 编码器在运行时通过类型断言检查其属性，就像这样：
+```GO
+m, ok := val.(json.Marshaler)
+```
+
+若只需要判断某个类型是否是实现了某个接口，而不需要实际使用接口本身 （可能是错误检查部分），就使用空白标识符来忽略类型断言的值：
+```GO
+if _, ok := val.(json.Marshaler); ok {
+    fmt.Printf("value %v of type %T implements json.Marshaler\n", val, val)
+}
+```
+
+当需要确保某个包中实现的类型一定满足该接口时，就会遇到这种情况。 若某个类型（例如 json.RawMessage） 需要一种自定义的 JSON 表现时，它应当实现 json.Marshaler， 不过现在没有静态转换可以让编译器去自动验证它。若该类型通过忽略转换失败来满足该接口， 那么 JSON 编码器仍可工作，但它却不会使用自定义的实现。为确保其实现正确， 可在该包中用空白标识符声明一个全局变量：
+```GO
+var _ json.Marshaler = (*RawMessage)(nil)
+```
+
+在此声明中，我们调用了一个 `*RawMessage` 转换并将其赋予了 `Marshaler`，以此来要求 `*RawMessage` 实现 `Marshaler`，这时其属性就会在编译时被检测。 若 `json.Marshaler` 接口被更改，此包将无法通过编译， 而我们则会注意到它需要更新。
+
+在这种结构中出现空白标识符，即表示该声明的存在只是为了类型检查。 不过请不要为满足接口就将它用于任何类型。作为约定， 只有当代码中不存在静态类型转换时才能使用这种声明，毕竟这是种非常罕见的情况。
+
+## 内嵌
+
+Go 并不提供典型的，类型驱动的子类化概念，但通过将**类型内嵌到结构体或接口**中， 它就能 “借鉴” 部分实现。
+
+接口内嵌非常简单:
+```GO
+type Reader interface {                       //定义读取的接口类型
+    Read(p []byte) (n int, err error)       //定义函数   传入[]byte类型  返回一个整型和err
+}
+
+type Writer interface {                         //定义写入的接口类型
+    Write(p []byte) (n int, err error)       //定义函数   传入[]byte类型  返回一个整型和err
+}
+
+// ReadWriter 接口结合了 Reader 接口 和 Writer 接口
+type ReadWriter interface {
+    Reader
+    Writer
+}
+```
+
+同样的基本想法可以应用在结构体中，但其意义更加深远:
+```GO
+// ReadWriter 存储了指向 Reader 和 Writer 的指针。
+// 它实现了 io.ReadWriter。
+type ReadWriter struct {
+    *Reader  // *bufio.Reader
+    *Writer  // *bufio.Writer
+}
+```
+
+## 错误
+
+按照约定，错误的类型通常为 error，这是一个内置的简单接口。
+```GO
+type error interface {
+    Error() string
+}
+```
+库的开发者可以自由地用更丰富的模型实现这个接口，这样不仅可以看到错误，还可以提供一些上下文。如前所述，除了通常的 `*os.File` 返回值外，`os.Open` 还返回一个错误值。如果文件被成功打开，错误将为 nil，但是当出现问题时，它将返回一个 `os.PathError` 的错误，就像这样：
+```GO
+// PathError 记录错误、执行的操作和文件路径
+type PathError struct {
+    Op string    // "open", "unlink" 等等对文件的操作
+    Path string  // 相关文件的路径
+    Err error    // 由系统调用返回
+}
+
+func (e *PathError) Error() string {
+    return e.Op + " " + e.Path + ": " + e.Err.Error()
+}
+```
+
+## Test
+
+创建测试文件`*_test.go`:
+```GO
+package bank
+
+import "testing"
+
+func TestAccount(t *testing.T) {
+
+}
+```
+使用以下命令在详细模式下运行测试：
+```
+go test -v
+```
+Go 将查找所有 `*_test.go` 文件来运行测试，因此你应该会看到以下输出：
+```
+=== RUN   TestAccount
+--- PASS: TestAccount (0.00s)
+PASS
+ok      github.com/msft/bank    0.391s
+```

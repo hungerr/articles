@@ -69,7 +69,9 @@ func main() {
 
 常量的声明与变量类似，只不过是使用 const 关键字。
 
-常量可以是字符、字符串、布尔值或数值。
+Go 中的常量就是不变量。它们在`编译时创建`，即便它们可能是函数中定义的局部变量。 常量只能是`数字、字符（符文）、字符串或布尔值`。由于编译时的限制， 定义它们的表达式必须也是可被编译器求值的常量表达式。例如 `1<<3` 就是一个常量表达式，而 `math.Sin(math.Pi/4)` 则不是，因为对 math.Sin 的函数调用在运行时才会发生。
+
+常量可以是`字符、字符串、布尔值或数值`。
 
 常量不能用 `:=` 语法声明。
 
@@ -108,6 +110,83 @@ func main() {
 	fmt.Println(needInt(Small))
 	fmt.Println(needFloat(Small))
 	fmt.Println(needFloat(Big))
+}
+```
+
+### iota
+
+在一组常量声明`constant declaration`内可以使用`iota`
+
+`iota`值是所在位置的`index`值 初始值是`0`
+
+一行内可以使用多次`iota` 值是相同的
+```GO
+const (
+	c0 = iota  // c0 == 0
+	c1 = iota  // c1 == 1
+	c2 = iota  // c2 == 2
+)
+
+const (
+	a = 1 << iota  // a == 1  (iota == 0)
+	b = 1 << iota  // b == 2  (iota == 1)
+	c = 3          // c == 3  (iota == 2, unused)
+	d = 1 << iota  // d == 8  (iota == 3)
+)
+
+const (
+	u         = iota * 42  // u == 0     (untyped integer constant)
+	v float64 = iota * 42  // v == 42.0  (float64 constant)
+	w         = iota * 42  // w == 84    (untyped integer constant)
+)
+
+const x = iota  // x == 0
+const y = iota  // y == 0
+
+const (
+	bit0, mask0 = 1 << iota, 1<<iota - 1  // bit0 == 1, mask0 == 0  (iota == 0)
+	bit1, mask1                           // bit1 == 2, mask1 == 1  (iota == 1)
+	_, _                                  //                        (iota == 2, unused)
+	bit3, mask3                           // bit3 == 8, mask3 == 7  (iota == 3)
+)
+```
+
+使用iota创建字节大小表示:
+```GO
+type ByteSize float64
+
+const (
+    _           = iota // 通过赋予空白标识符来忽略第一个值
+    KB ByteSize = 1 << (10 * iota)
+    MB
+    GB
+    TB
+    PB
+    EB
+    ZB
+    YB
+)
+
+func (b ByteSize) String() string {
+    switch {
+    case b >= YB:
+        return fmt.Sprintf("%.2fYB", b/YB)
+    case b >= ZB:
+        return fmt.Sprintf("%.2fZB", b/ZB)
+    case b >= EB:
+        return fmt.Sprintf("%.2fEB", b/EB)
+    case b >= PB:
+        return fmt.Sprintf("%.2fPB", b/PB)
+    case b >= TB:
+        return fmt.Sprintf("%.2fTB", b/TB)
+    case b >= GB:
+        return fmt.Sprintf("%.2fGB", b/GB)
+    case b >= MB:
+        return fmt.Sprintf("%.2fMB", b/MB)
+    case b >= KB:
+        return fmt.Sprintf("%.2fKB", b/KB)
+    }
+    return fmt.Sprintf("%.2fB", b)
 }
 ```
 

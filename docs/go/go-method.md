@@ -290,6 +290,40 @@ func main() {
 }
 ```
 
+## 通用性
+若某种现有的类型仅实现了一个接口，且除此之外并无可导出的方法，则该类型本身就无需导出。 **仅导出该接口**能让我们更专注于其行为而非实现，其它属性不同的实现则能镜像该原始类型的行为。 这也能够避免为每个通用接口的实例重复编写文档。
+
+在这种情况下，构造函数应当**返回一个接口值**而非实现的类型。例如在 `hash` 库中，`crc32.NewIEEE` 和 `adler32.New` 都返回接口类型 `hash.Hash32`。要在 Go 程序中用 `Adler-32` 算法替代 `CRC-32`， 只需修改构造函数调用即可，其余代码则不受算法改变的影响。
+```GO
+// New creates a new hash.Hash32 computing the CRC-32 checksum using the
+// polynomial represented by the Table. Its Sum method will lay the
+// value out in big-endian byte order. The returned Hash32 also
+// implements encoding.BinaryMarshaler and encoding.BinaryUnmarshaler to
+// marshal and unmarshal the internal state of the hash.
+func New(tab *Table) hash.Hash32 {
+	if tab == IEEETable {
+		ieeeOnce.Do(ieeeInit)
+	}
+	return &digest{0, tab}
+}
+
+// New returns a new hash.Hash32 computing the Adler-32 checksum. Its
+// Sum method will lay the value out in big-endian byte order. The
+// returned Hash32 also implements encoding.BinaryMarshaler and
+// encoding.BinaryUnmarshaler to marshal and unmarshal the internal
+// state of the hash.
+func New() hash.Hash32 {
+	d := new(digest)
+	d.Reset()
+	return d
+}
+
+type Hash32 interface {
+    Hash
+    Sum32() uint32
+}
+```
+
 ### 编写自定义服务器 API
 
 为映射添加方法
@@ -321,3 +355,89 @@ func main() {
     log.Fatal(http.ListenAndServe("localhost:8000", db))
 }
 ```
+
+## 接口和方法
+由于几乎任何类型都能添加方法，因此几乎任何类型都能满足一个接口。一个很直观的例子就是 http 包中定义的 Handler 接口。任何实现了 Handler 的对象都能够处理 HTTP 请求。
+```GO
+type Handler interface {
+    ServeHTTP(ResponseWriter, *Request)
+}
+```
+`ResponseWriter` 接口提供了对方法的访问，这些方法需要响应客户端的请求。 由于这些方法包含了标准的 `Write` 方法，因此 `http.ResponseWriter` 可用于任何 `io.Writer` 适用的场景。`Request` 结构体包含已解析的客户端请求。
+
+为简单起见，我们假设所有的 HTTP 请求都是 GET 方法，而忽略 POST 方法， 这种简化不会影响处理程序的建立方式。这里有个短小却完整的处理程序实现， 它用于记录某个页面被访问的次数。
+```GO
+// 简单的计数器服务器。
+type Counter struct {
+    n int
+}
+
+func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    ctr.n++
+    fmt.Fprintf(w, "counter = %d\n", ctr.n)
+}
+```
+
+（紧跟我们的主题，注意 Fprintf 如何能输出到 http.ResponseWriter。） 作为参考，这里演示了如何将这样一个服务器添加到 URL 树的一个节点上。
+```GO
+import "net/http"
+...
+ctr := new(Counter)
+http.Handle("/counter", ctr)
+```
+但为什么 Counter 要是结构体呢？一个整数就够了。（接收者必须为指针，增量操作对于调用者才可见。）
+```GO
+// 简单的计数器服务。
+type Counter int
+
+func (ctr *Counter) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    *ctr++
+    fmt.Fprintf(w, "counter = %d\n", *ctr)
+}
+```
+当页面被访问时，怎样通知你的程序去更新一些内部状态呢？为 Web 页面绑定个信道吧。
+```GO
+// 每次浏览该信道都会发送一个提醒。
+// （可能需要带缓冲的信道。）
+type Chan chan *http.Request
+
+func (ch Chan) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+    ch <- req
+    fmt.Fprint(w, "notification sent")
+}
+```
+最后，假设我们需要输出调用服务器二进制程序时使用的实参 /args。 很简单，写个打印实参的函数就行了。
+```GO
+func ArgServer() {
+    fmt.Println(os.Args)
+}
+```
+如何将它转换为 HTTP 服务器呢？我们可以将 ArgServer 实现为某种可忽略值的方法，不过还有种更简单的方法。 既然我们可以为除指针和接口以外的任何类型定义方法，同样也能为一个函数写一个方法。 http 包包含以下代码：
+```GO
+// HandlerFunc 类型是一个适配器，
+// 它允许将普通函数用做HTTP处理程序。
+// 若 f 是个具有适当签名的函数，
+// HandlerFunc(f) 就是个调用 f 的处理程序对象。
+type HandlerFunc func(ResponseWriter, *Request)
+
+// ServeHTTP calls f(w, req).
+func (f HandlerFunc) ServeHTTP(w ResponseWriter, req *Request) {
+    f(w, req)
+}
+```
+HandlerFunc 是个具有 ServeHTTP 方法的类型， 因此该类型的值就能处理 HTTP 请求。我们来看看该方法的实现：接收者是一个函数 f，而该方法调用 f。这看起来很奇怪，但不必大惊小怪， 区别在于接收者变成了一个信道，而方法通过该信道发送消息。
+
+为了将 ArgServer 实现成 HTTP 服务器，首先我们得让它拥有合适的签名。
+```GO
+// 实参服务器。
+func ArgServer(w http.ResponseWriter, req *http.Request) {
+    fmt.Fprintln(w, os.Args)
+}
+```
+ArgServer 和 HandlerFunc 现在拥有了相同的签名， 因此我们可将其转换为这种类型以访问它的方法，就像我们将 Sequence 转换为 IntSlice 以访问 IntSlice.Sort 那样。 建立代码非常简单：
+```GO
+http.Handle("/args", http.HandlerFunc(ArgServer))
+```
+当有人访问 /args 页面时，安装到该页面的处理程序就有了值 ArgServer 和类型 HandlerFunc。 HTTP 服务器会以 ArgServer 为接收者，调用该类型的 ServeHTTP 方法，它会反过来调用 ArgServer（通过 f(c, req)），接着实参就会被显示出来。
+
+在本节中，我们通过一个结构体，一个整数，一个信道和一个函数，建立了一个 HTTP 服务器， 这一切都是因为接口只是方法的集合，而几乎任何类型都能定义方法。

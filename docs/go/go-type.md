@@ -26,6 +26,36 @@ f := float64(i)
 u := uint(f)
 ```
 
+在 Go 程序中，为访问不同的方法集而进行类型转换的情况非常常见
+
+底层相通可以转换`[]int(s)` 共享已实现的功能:
+```GO
+type Sequence []int
+
+// sort.Interface所需的方法。
+func (s Sequence) Len() int {
+    return len(s)
+}
+func (s Sequence) Less(i, j int) bool {
+    return s[i] < s[j]
+}
+func (s Sequence) Swap(i, j int) {
+    s[i], s[j] = s[j], s[i]
+}
+
+// Copy方法返回Sequence的复制
+func (s Sequence) Copy() Sequence {
+    copy := make(Sequence, 0, len(s))
+    return append(copy, s...)
+}
+
+func (s Sequence) String() string {
+    s = s.Copy()
+    sort.Sort(s)
+    return fmt.Sprint([]int(s))
+}
+```
+
 不兼容类型是不可以转换的:
 ```go
 a := 1.1
@@ -33,6 +63,7 @@ b := int(a) // 可行 a float64
 c := int(1.1) // cannot convert 1.1 (untyped float constant) to int
 d := int(1.0) // 可行
 ```
+
 ### 常量的隐式类型转换
 
 未命名常量只在编译期间存在，不会存储在内存中；而命名常量存在于内存静态区，不允许修改。考虑如下代码:
@@ -178,3 +209,20 @@ const b = a * 0.333 // 0.333 (untyped float constant) truncated to int
 const a = 1.0 / 3
 b := &a // invalid operation: cannot take address of a (untyped float constant 0.333333)
 ```
+
+## 接口转换与类型断言
+`类型选择` 是`类型转换`的一种形式：它接受一个接口，在选择 （switch）中根据其判断选择对应的情况（case）， 并在某种意义上将其转换为该种类型。以下代码为 `fmt.Printf` 通过类型选择将值转换为字符串的简化版。若它已经为字符串，我们需要该接口中实际的字符串值； 若它有 String 方法，我们则需要调用该方法所得的结果。
+```GO
+type Stringer interface {
+    String() string
+}
+
+var value interface{} // Value 由调用者提供
+switch str := value.(type) {
+case string:
+    return str
+case Stringer:
+    return str.String()
+}
+```
+第一种情况获取具体的值，第二种将该接口转换为另一个接口。这种方式对于混合类型来说非常完美。

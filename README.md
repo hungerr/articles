@@ -11,6 +11,7 @@
 - [为啥 Python 运行速度这么慢](docs/python/why-python-so-slow.md "why python so slow")
 - [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "Flask SqlAlchemy动态建表")
 - [Python并发编程](docs/python/threading.md "Python并发编程")
+- [Python异常](docs/python/exception.md "Python异常")
 
 ### GO
 - [Go配置](docs/go/go.md "Go")

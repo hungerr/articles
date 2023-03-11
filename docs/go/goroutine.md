@@ -479,7 +479,7 @@ RecvExpr 必须是个receive operation
 
 使用 select 关键字可以与多个通道同时交互
 
--  channel表达式会立即执行
+-  channel表达式会立即执行 所有被发送的表达式都会被求值
 - 如果多个chan可以使用 随机选择一个接受或者发送数据
 - 如果只有一个chan可以使用 选择此chan
 - 如果无chan可使用 有default 执行default 无default则一直阻塞
@@ -652,3 +652,263 @@ func server() {
 }
 ```
 客户端试图从 `freeList` 中获取缓冲区；若没有缓冲区可用， 它就将分配一个新的。服务器将 `b` 放回空闲列表 `freeList` 中直到列表已满，此时缓冲区将被丢弃，并被垃圾回收器回收。（select 语句中的 default 子句在没有条件符合时执行，这也就意味着 selects 永远不会被阻塞。）依靠带缓冲的信道和垃圾回收器的记录， 我们仅用短短几行代码就构建了一个leaky buffer
+
+## sync
+
+### Mutex锁
+Go中也有锁的概念
+
+```GO
+package main
+
+import (
+	"fmt"
+	"sync"
+	"time"
+)
+
+type SafeCounter struct {
+	n     int
+	mutex sync.Mutex
+}
+
+func (c *SafeCounter) Inc() {
+	c.mutex.Lock()
+	c.n += 1
+	c.mutex.Unlock()
+}
+
+func main() {
+	c := SafeCounter{}
+	for i := 0; i < 1000; i += 1 {
+		go c.Inc()
+	}
+	time.Sleep(time.Second)
+	fmt.Print(c.n)
+}
+```
+
+### WaitGroup
+
+`WaitGroup`可以等待一组`goroutines`完成
+
+主`goroutine`调用Add设置`goroutines` 其余各个`goroutines`完成的时候调用`Done`
+
+主`goroutine`调用`Wait`等待其余`goroutines`完成
+
+此种情况可以替代`chan`的通讯作用  特别是`goroutines`数目不明的时候更为方便
+```GO
+package main
+
+import (
+	"fmt"
+	"net/http"
+	"sync"
+	"time"
+)
+
+func main() {
+	start := time.Now()
+
+	apis := []string{
+		"https://management.azure.com",
+		"https://dev.azure.com",
+		"https://api.github.com",
+		"https://outlook.office.com/",
+		"https://api.somewhereintheinternet.com/",
+		"https://graph.microsoft.com",
+	}
+
+	wg := sync.WaitGroup{}
+
+	for _, api := range apis {
+		wg.Add(1)
+		go checkAPI(api, &wg)
+	}
+
+	wg.Wait()
+	elapsed := time.Since(start)
+	fmt.Printf("Done! It took %v seconds!\n", elapsed.Seconds())
+}
+
+func checkAPI(api string, wg *sync.WaitGroup) {
+	http.Get(api)
+	defer wg.Done()
+}
+```
+
+### Once
+
+`Once` is a fairly simple primitive: the first call to `Do(func())` will cause all other concurrent calls to block until the argument of Do returns. After this happens all blocked calls and successive ones will do nothing and return immediately.
+
+只执行一次
+```GO
+package main
+
+import (
+	"fmt"
+	"sync"
+)
+
+func main() {
+	var once sync.Once
+	onceBody := func() {
+		fmt.Println("Only once")
+	}
+	done := make(chan bool)
+	for i := 0; i < 10; i++ {
+		go func() {
+			once.Do(onceBody)
+			done <- true
+		}()
+	}
+	for i := 0; i < 10; i++ {
+		<-done
+	}
+}
+```
+
+### Pool
+
+sync.Pool 是 Golang 内置的对象池技术，可用于缓存临时对象，避免因频繁建立临时对象所带来的消耗以及对 GC 造成的压力。
+
+在许多知名的开源库中，都可以看到 sync.Pool 的大量使用。例如，HTTP 框架 Gin 用 sync.Pool 来复用每个请求都会创建的 gin.Context 对象。 在 grpc-Go、kubernates 等也都可以看到对 sync.Pool 的身影。
+
+但需要注意的是，sync.Pool 缓存的对象随时可能被无通知的清除，因此不能将 sync.Pool 用于存储持久对象的场景。
+
+`sync.Pool` 在初始化的时候，需要用户提供一个对象的构造函数 `New`。用户使用 `Get` 来从对象池中获取对象，使用 `Put` 将对象归还给对象池
+
+```GO
+package main
+
+import (
+	"bytes"
+	"io"
+	"os"
+	"sync"
+	"time"
+)
+
+var bufPool = sync.Pool{
+	New: func() any {
+		// The Pool's New function should generally only return pointer
+		// types, since a pointer can be put into the return interface
+		// value without an allocation:
+		return new(bytes.Buffer)
+	},
+}
+
+// timeNow is a fake version of time.Now for tests.
+func timeNow() time.Time {
+	return time.Unix(1136214245, 0)
+}
+
+func Log(w io.Writer, key, val string) {
+	b := bufPool.Get().(*bytes.Buffer)
+	b.Reset()
+	// Replace this with time.Now() in a real logger.
+	b.WriteString(timeNow().UTC().Format(time.RFC3339))
+	b.WriteByte(' ')
+	b.WriteString(key)
+	b.WriteByte('=')
+	b.WriteString(val)
+	w.Write(b.Bytes())
+	bufPool.Put(b)
+}
+
+func main() {
+	Log(os.Stdout, "path", "/search?q=flowers")
+}
+```
+
+### Cond条件
+
+```GO
+c.L.Lock()
+for !condition() {
+    c.Wait()
+}
+... make use of condition ...
+c.L.Unlock()
+```
+
+## time
+
+### func After(d Duration) <-chan Time
+```GO
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+var c chan int
+
+func handle(int) {}
+
+func main() {
+	select {
+	case m := <-c:
+		handle(m)
+	case <-time.After(10 * time.Second):
+		fmt.Println("timed out")
+	}
+}
+```
+
+### func Tick(d Duration) <-chan Time
+```GO
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func statusUpdate() string { return "" }
+
+func main() {
+	c := time.Tick(5 * time.Second)
+	for next := range c {
+		fmt.Printf("%v %s\n", next, statusUpdate())
+	}
+}
+```
+
+### Ticker
+
+```GO
+type Ticker struct {
+    C <-chan Time // The channel on which the ticks are delivered.
+    // contains filtered or unexported fields
+}
+```
+
+```GO
+package main
+
+import (
+	"fmt"
+	"time"
+)
+
+func main() {
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+	done := make(chan bool)
+	go func() {
+		time.Sleep(10 * time.Second)
+		done <- true
+	}()
+	for {
+		select {
+		case <-done:
+			fmt.Println("Done!")
+			return
+		case t := <-ticker.C:
+			fmt.Println("Current time: ", t)
+		}
+	}
+}
+```

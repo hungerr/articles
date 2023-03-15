@@ -824,12 +824,158 @@ func main() {
 ### Cond条件
 
 ```GO
+type Cond struct {
+
+    // L is held while observing or changing the condition
+    L Locker
+    // contains filtered or unexported fields
+}
+```
+`Wait`自动`unlock c.L`并交出控制权 
+
+`Signal`和`Broadcast`唤醒wait的`goroutine
+
+基本用法:
+```GO
 c.L.Lock()
 for !condition() {
     c.Wait()
 }
 ... make use of condition ...
 c.L.Unlock()
+```
+实例:
+```GO
+func main() {
+	ch := make(chan bool, 1)
+	x := 0
+	mu := sync.Mutex{}
+	cond := sync.NewCond(&mu)
+	condition := 0
+
+	waker := func() {
+		mu.Lock()
+		fmt.Println("waker in")
+		x += 1
+		condition = 1
+		cond.Signal()
+		fmt.Println("waker out")
+		mu.Unlock()
+	}
+
+	go func() {
+		go waker()
+		cond.L.Lock()
+		fmt.Println("waiter in")
+		for condition != 1 {
+			fmt.Println("waiter wait")
+			cond.Wait()
+		}
+		cond.L.Unlock()
+		fmt.Println("waiter out")
+		fmt.Println(x)
+		ch <- true
+	}()
+	<-ch
+}
+```
+输出:
+```
+waiter in
+waiter wait
+waker in
+waker out
+waiter out
+1
+```
+
+设计一个多任务执行程序
+```GO
+func main() {
+	tasks := Tasks{}
+	for i := 0; i < 10; i++ {
+		task := Task{ch: make(chan bool)}
+		tasks = append(tasks, &task)
+	}
+	tasks.Run()
+}
+
+type Task struct {
+	ch chan bool
+}
+
+func (t *Task) Run() {
+	time.Sleep(3 * time.Second)
+	fmt.Println("done")
+	t.ch <- true
+}
+
+type Tasks []*Task
+
+func (tasks Tasks) Run() {
+	start := time.Now()
+	finishedTasks := 0
+	mu := sync.Mutex{}
+	done := make(chan bool)
+
+	for _, task := range tasks {
+
+		go func(t *Task) {
+			go t.Run()
+			<-t.ch
+			mu.Lock()
+			finishedTasks += 1
+			if finishedTasks == len(tasks) {
+				done <- true
+			}
+			mu.Unlock()
+		}(task)
+
+	}
+
+	<-done
+	d := time.Since(start)
+
+	fmt.Printf("all tasks done: %v", d)
+}
+```
+使用`Cond`控制并行数量:
+```GO
+func (tasks Tasks) RunWithMaxNum(maxNum int) {
+	start := time.Now()
+	finishedTasks := 0
+	currentTasks := 0
+	mu := sync.Mutex{}
+	cond := sync.NewCond(&mu)
+	done := make(chan bool)
+
+	for _, task := range tasks {
+		cond.L.Lock()
+		for currentTasks >= maxNum {
+			cond.Wait()
+		}
+		currentTasks += 1
+		cond.L.Unlock()
+
+		go func(t *Task) {
+			go t.Run()
+			<-t.ch
+			cond.L.Lock()
+			finishedTasks += 1
+			currentTasks -= 1
+			if finishedTasks == len(tasks) {
+				done <- true
+			}
+			cond.Signal()
+			cond.L.Unlock()
+		}(task)
+
+	}
+
+	<-done
+	d := time.Since(start)
+	fmt.Printf("all tasks done: %v", d)
+}
 ```
 
 ## time
@@ -883,6 +1029,8 @@ type Ticker struct {
     C <-chan Time // The channel on which the ticks are delivered.
     // contains filtered or unexported fields
 }
+
+func NewTicker(d Duration) *Ticker
 ```
 
 ```GO

@@ -27,6 +27,7 @@
 - [Go文件操作](docs/go/go-file.md "Go文件操作")
 - [Go泛型](docs/go/go-generics.md "Go泛型")
 - [Go类型断言](docs/go/go-type-assert.md "Go类型断言")
+- [Go循环变量](docs/go/go-loop-var.md "Go循环变量")
 
 ### Java
 - [java-maven](docs/java/java-maven.md "java-maven")

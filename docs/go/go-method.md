@@ -134,11 +134,15 @@ Go 中的封装仅在程序包之间有效。 换句话说，你只能隐藏来�
 ## 接口Interface
 接口类似于对象应满足的蓝图或协定。 在你使用接口时，你的基本代码将变得更加灵活、适应性更强，因为你编写的代码未绑定到特定的实现
 
+接口是一系列类型type的集合set
+
 接口可实现动态绑定
 
-### 声明接口
+接口有三种类型: `Basic interfaces`,`Embedded interfaces`,`General interfaces`
 
-Go 中的接口类似于蓝图。 一种抽象类型，只包括具体类型必须拥有或实现的方法。
+### Basic interfaces
+
+只包含方法
 ```GO
 type Shape interface {
     Perimeter() float64
@@ -207,6 +211,110 @@ func main() {
 }
 ```
 请注意，对于 c 对象，我们不将其指定为 `Shape` 对象。 但是，`printInformation`函数需要一个对象来实现 `Shape` 接口中定义的方法。
+
+### Embedded interfaces
+```GO
+type Reader interface {
+	Read(p []byte) (n int, err error)
+	Close() error
+}
+
+type Writer interface {
+	Write(p []byte) (n int, err error)
+	Close() error
+}
+
+// ReadWriter's methods are Read, Write, and Close.
+type ReadWriter interface {
+	Reader  // includes methods of Reader in ReadWriter's method set
+	Writer  // includes methods of Writer in ReadWriter's method set
+
+type ReadCloser interface {
+	Reader   // includes methods of Reader in ReadCloser's method set
+	Close()  // illegal: signatures of Reader.Close and Close are different
+}
+```
+
+### General interfaces
+接口内不光只有方法，还有类型
+
+General interfaces不能用来定义变量，只能用于泛型的类型约束中:
+```GO
+// An interface representing only the type int.
+interface {
+	int
+}
+
+// An interface representing all types with underlying type int.
+interface {
+	~int
+}
+
+// An interface representing all types with underlying type int that implement the String method.
+interface {
+	~int
+	String() string
+}
+
+// An interface representing an empty type set: there is no type that is both an int and a string.
+interface {
+	int
+	string
+}
+
+type MyInt int
+
+interface {
+	~[]byte  // the underlying type of []byte is itself
+	~MyInt   // illegal: the underlying type of MyInt is not MyInt
+	~error   // illegal: error is an interface
+}
+
+// The Float interface represents all floating-point types
+// (including any named types whose underlying types are
+// either float32 or float64).
+type Float interface {
+	~float32 | ~float64
+}
+
+interface {
+	P                // illegal: P is a type parameter
+	int | ~P         // illegal: P is a type parameter
+	~int | MyInt     // illegal: the type sets for ~int and MyInt are not disjoint (~int includes MyInt)
+	float32 | Float  // overlapping type sets but Float is an interface
+}
+
+var x Float                     // illegal: Float is not a basic interface
+
+var x interface{} = Float(nil)  // illegal
+
+type Floatish struct {
+	f Float                 // illegal
+}
+
+// illegal: Bad may not embed itself
+type Bad interface {
+	Bad
+}
+
+// illegal: Bad1 may not embed itself using Bad2
+type Bad1 interface {
+	Bad2
+}
+type Bad2 interface {
+	Bad1
+}
+
+// illegal: Bad3 may not embed a union containing Bad3
+type Bad3 interface {
+	~int | ~string | Bad3
+}
+
+// illegal: Bad4 may not embed an array containing Bad4 as element type
+type Bad4 interface {
+	[10]Bad4
+}
+```
 
 ### 实现字符串接口
 扩展现有功能的一个简单示例是使用 `Stringer`，它是具有 `String()` 方法的接口，具体如下所示：

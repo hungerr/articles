@@ -2,90 +2,86 @@
 
 泛型允许程序员在强类型程序设计语言中编写代码时使用一些以后才指定的类型，在实例化时作为参数指明这些类型
 
-要对不同的类型做同样的事情 需要两个函数 参数接收不同的类型：
+## 泛型概念
+
+Go引入了非常多全新的概念
+
+- 类型形参`Type parameter`
+- 类型实参`Type argument`
+- 类型形参列表`Type parameter list`
+- 类型约束`Type constraint`
+- 实例化`Instantiations`
+- 泛型类型`Generic type`
+- 泛型接收器`Generic receiver`
+- 泛型函数G`eneric function`
+
+定义一个泛型类型`Generic type`:
 ```GO
-func main() {
-	// Initialize a map for the integer values
-	ints := map[string]int64{
-		"first":  34,
-		"second": 12,
-	}
+type Slice[T int|float32|float64 ] []T
+```
 
-	// Initialize a map for the float values
-	floats := map[string]float64{
-		"first":  35.98,
-		"second": 26.99,
-	}
+- `T`就是上面介绍过的类型形参`Type parameter`，在定义`Slice`类型的时候`T`代表的具体类型并不确定，类似一个占位符
+- `int|float32|float64`这部分被称为类型约束(`Type constraint`)，中间的 `|` 的意思是告诉编译器，类型形参`T`只可以接收`int`或`float32`或`float64`这三种类型的实参
+- 中括号里的`T int|float32|float64`这一整串因为定义了所有的类型形参，所以我们称其为 类型形参列表(`type parameter list`) 例子只有一个
+- 这里新定义的切片类型名称叫 `Slice[T]` 称之为 泛型类型(`Generic type`)
 
-	fmt.Printf("Non-Generic Sums: %v and %v\n",
-		SumInts(ints),
-		SumFloats(floats))
-}
+泛型类型不能直接拿来使用，必须传入类型实参(`Type argument`) 将其确定为具体的类型之后才可使用。而传入类型实参确定具体类型的操作被称为 实例化(`Instantiations`) ：
+```GO
+// 这里传入了类型实参int，泛型类型Slice[T]被实例化为具体的类型 Slice[int]
+var a Slice[int] = []int{1, 2, 3}  
+fmt.Printf("Type Name: %T",a)  //输出：Type Name: Slice[int]
 
-// SumInts adds together the values of m.
-func SumInts(m map[string]int64) int64 {
-	var s int64
-	for _, v := range m {
-		s += v
-	}
-	return s
-}
+// 传入类型实参float32, 将泛型类型Slice[T]实例化为具体的类型 Slice[string]
+var b Slice[float32] = []float32{1.0, 2.0, 3.0} 
+fmt.Printf("Type Name: %T",b)  //输出：Type Name: Slice[float32]
 
-// SumFloats adds together the values of m.
-func SumFloats(m map[string]float64) float64 {
-	var s float64
-	for _, v := range m {
-		s += v
-	}
-	return s
+// ✗ 错误。因为变量a的类型为Slice[int]，b的类型为Slice[float32]，两者类型不同
+a = b  
+
+// ✗ 错误。string不在类型约束 int|float32|float64 中，不能用来实例化泛型类型
+var c Slice[string] = []string{"Hello", "World"} 
+
+// ✗ 错误。Slice[T]是泛型类型，不可直接使用必须实例化为具体的类型
+var x Slice[T] = []int{1, 2, 3} 
+```
+
+定义一个**泛型map**:
+```GO
+// MyMap类型定义了两个类型形参 KEY 和 VALUE。分别为两个形参指定了不同的类型约束
+// 这个泛型类型的名字叫： MyMap[KEY, VALUE]
+type MyMap[KEY int | string, VALUE float32 | float64] map[KEY]VALUE  
+
+// 用类型实参 string 和 flaot64 替换了类型形参 KEY 、 VALUE，泛型类型被实例化为具体的类型：MyMap[string, float64]
+var a MyMap[string, float64] = map[string]float64{
+    "jack_score": 9.6,
+    "bob_score":  8.4,
 }
 ```
 
-## 泛型函数
-
-Go支持泛型函数处理不同类型的参数:
+**泛型结构体**:
 ```GO
-func main() {
-	// Initialize a map for the integer values
-	ints := map[string]int64{
-		"first":  34,
-		"second": 12,
-	}
-
-	// Initialize a map for the float values
-	floats := map[string]float64{
-		"first":  35.98,
-		"second": 26.99,
-	}
-
-	fmt.Printf("Generic Sums: %v and %v\n",
-		SumIntsOrFloats(ints),
-		SumIntsOrFloats(floats))
-}
-
-// SumIntsOrFloats sums the values of map m. It supports both int64 and float64
-// as types for map values.
-func SumIntsOrFloats[K comparable, V int64 | float64](m map[K]V) V {
-	var s V
-	for _, v := range m {
-		s += v
-	}
-	return s
+// 一个泛型类型的结构体。可用 int 或 sring 类型实例化
+type MyStruct[T int | string] struct {  
+    Name string
+    Data T
 }
 ```
 
-函数的 `形参(parameter)` 只是类似占位符的东西并没有具体的值，只有我们调用函数传入`实参(argument)` 之后才有具体的值。
+**泛型接口**:
+```GO
+// 一个泛型接口(关于泛型接口在后半部分会详细讲解）
+type IPrintData[T int | float32 | string] interface {
+    Print(data T)
+}
+```
 
-那么，如果我们将 形参 实参 这个概念推广一下，给变量的类型也引入和类似形参实参的概念的话，问题就迎刃而解：在这里我们将其称之为 `类型形参(type parameter)` 和 `类型实参(type argument)`
+**泛型chan**:
+```GO
+// 一个泛型通道，可用类型实参 int 或 string 实例化
+type MyChan[T int | string] chan T
+```
 
-
-- 方括号内声明了两个`类型形参(type parameter)`数`K`和`V`
-- comparable代表可用`==`或者`!=`进行比较的类型
-- 使用`|`表示两种类型的union
-- 传入`类型实参(type argument)`使用
-
-## 声明一个类型约束type constraint
-
+声明一个`General interfaces`:
 ```GO
 type Number interface {
 	int64 | float64
@@ -125,61 +121,6 @@ func SumNumbers[K comparable, V Number](m map[K]V) V {
 }
 ```
 
-声明新类型切片:
-```GO
-type Slice[T int|float32|float64] []T
-```
-
-中括号里的 `T int|float32|float64` 这一整串因为定义了所有的类型形参(在这个例子里只有一个类型形参T），所以我们称其为 `类型形参列表(type parameter list)`
-```GO
-// 这里传入了类型实参int，泛型类型Slice[T]被实例化为具体的类型 Slice[int]
-var a Slice[int] = []int{1, 2, 3}  
-fmt.Printf("Type Name: %T",a)  //输出：Type Name: Slice[int]
-
-// 传入类型实参float32, 将泛型类型Slice[T]实例化为具体的类型 Slice[string]
-var b Slice[float32] = []float32{1.0, 2.0, 3.0} 
-fmt.Printf("Type Name: %T",b)  //输出：Type Name: Slice[float32]
-
-// ✗ 错误。因为变量a的类型为Slice[int]，b的类型为Slice[float32]，两者类型不同
-a = b  
-
-// ✗ 错误。string不在类型约束 int|float32|float64 中，不能用来实例化泛型类型
-var c Slice[string] = []string{"Hello", "World"} 
-
-// ✗ 错误。Slice[T]是泛型类型，不可直接使用必须实例化为具体的类型
-var x Slice[T] = []int{1, 2, 3} 
-```
-
-类型形参的数量可以远远不止一个:
-```GO
-// MyMap类型定义了两个类型形参 KEY 和 VALUE。分别为两个形参指定了不同的类型约束
-// 这个泛型类型的名字叫： MyMap[KEY, VALUE]
-type MyMap[KEY int | string, VALUE float32 | float64] map[KEY]VALUE  
-
-// 用类型实参 string 和 flaot64 替换了类型形参 KEY 、 VALUE，泛型类型被实例化为具体的类型：MyMap[string, float64]
-var a MyMap[string, float64] = map[string]float64{
-    "jack_score": 9.6,
-    "bob_score":  8.4,
-}
-```
-
-所有类型定义都可使用类型形参，所以下面这种结构体以及接口的定义也可以使用类型形参：
-```GO
-// 一个泛型类型的结构体。可用 int 或 sring 类型实例化
-type MyStruct[T int | string] struct {  
-    Name string
-    Data T
-}
-
-// 一个泛型接口(关于泛型接口在后半部分会详细讲解）
-type IPrintData[T int | float32 | string] interface {
-    Print(data T)
-}
-
-// 一个泛型通道，可用类型实参 int 或 string 实例化
-type MyChan[T int | string] chan T
-```
-
 类型形参是可以互相套用的，如下
 ```GO
 type WowStruct[T int | float32, S []T] struct {
@@ -188,8 +129,6 @@ type WowStruct[T int | float32, S []T] struct {
     MinValue T
 }
 ```
-
-任何泛型类型都必须传入类型实参实例化才可以使用:
 
 ## 几种错误
 
@@ -267,7 +206,7 @@ type NewType2[T *int|*float64] []T
 //✗ 错误
 type NewType2 [T (int)] []T
 ```
-复制代码
+
 为了避免这种误解，解决办法就是给类型约束包上 interface{}  或加上逗号消除歧义（关于接口具体的用法会在后半篇提及）
 ```GO
 type NewType[T interface{*int}] []T
@@ -321,9 +260,11 @@ type WowMap[T int|string] map[string]Slice[T]
 type WowMap2[T Slice[int] | Slice[string]] map[string]T
 ```
 
-## 泛型receiver
+## 泛型用途
 
-以给泛型类型添加方法
+### 泛型receiver
+
+可以给泛型类型添加方法
 ```GO
 type MySlice[T int | float32] []T
 
@@ -342,7 +283,7 @@ var s2 MySlice[float32] = []float32{1.0, 2.0, 3.0, 4.0}
 fmt.Println(s2.Sum()) // 输出：10.0
 ```
 
-## 泛型队列
+#### 泛型队列
 
 ```GO
 // 这里类型约束使用了空接口，代表的意思是所有类型都可以用来实例化泛型类型 Queue[T] (关于接口在后半部分会详细介绍）
@@ -395,7 +336,7 @@ var q6 Queue[io.Reader] // 可存放接口的队列
 // ......
 ```
 
-##  动态判断变量的类型
+####  动态判断变量的类型
 
 type switch和类型断言不能用:
 ```GO
@@ -441,6 +382,89 @@ func (receiver Queue[T]) Put(value T) {
         你为了避免使用反射而选择了泛型，结果到头来又为了一些功能在在泛型中使用反射
 
 当出现这种情况的时候你可能需要重新思考一下，自己的需求是不是真的需要用泛型（毕竟泛型机制本身就很复杂了，再加上反射的复杂度，增加的复杂度并不一定值得）
+
+### 泛型函数
+还有一个可以使用泛型的地方——`泛型函数`
+
+要对不同的类型做同样的事情 需要两个函数 参数接收不同的类型：
+```GO
+func main() {
+	// Initialize a map for the integer values
+	ints := map[string]int64{
+		"first":  34,
+		"second": 12,
+	}
+
+	// Initialize a map for the float values
+	floats := map[string]float64{
+		"first":  35.98,
+		"second": 26.99,
+	}
+
+	fmt.Printf("Non-Generic Sums: %v and %v\n",
+		SumInts(ints),
+		SumFloats(floats))
+}
+
+// SumInts adds together the values of m.
+func SumInts(m map[string]int64) int64 {
+	var s int64
+	for _, v := range m {
+		s += v
+	}
+	return s
+}
+
+// SumFloats adds together the values of m.
+func SumFloats(m map[string]float64) float64 {
+	var s float64
+	for _, v := range m {
+		s += v
+	}
+	return s
+}
+```
+
+Go支持泛型函数处理不同类型的参数:
+```GO
+func main() {
+	// Initialize a map for the integer values
+	ints := map[string]int64{
+		"first":  34,
+		"second": 12,
+	}
+
+	// Initialize a map for the float values
+	floats := map[string]float64{
+		"first":  35.98,
+		"second": 26.99,
+	}
+
+	fmt.Printf("Generic Sums: %v and %v\n",
+		SumIntsOrFloats(ints),
+		SumIntsOrFloats(floats))
+}
+
+// SumIntsOrFloats sums the values of map m. It supports both int64 and float64
+// as types for map values.
+func SumIntsOrFloats[K comparable, V int64 | float64](m map[K]V) V {
+	var s V
+	for _, v := range m {
+		s += v
+	}
+	return s
+}
+```
+
+函数的 `形参(parameter)` 只是类似占位符的东西并没有具体的值，只有我们调用函数传入`实参(argument)` 之后才有具体的值。
+
+那么，如果我们将 形参 实参 这个概念推广一下，给变量的类型也引入和类似形参实参的概念的话，问题就迎刃而解：在这里我们将其称之为 `类型形参(type parameter)` 和 `类型实参(type argument)`
+
+
+- 方括号内声明了两个`类型形参(type parameter)`数`K`和`V`
+- comparable代表可用`==`或者`!=`进行比较的类型
+- 使用`|`表示两种类型的union
+- 传入`类型实参(type argument)`使用
 
 ## 组合使用
 

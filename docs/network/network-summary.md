@@ -4,7 +4,7 @@
 
 网络协议通常分不同层次进行开发，每一层分别负责不同的通信功能。**OSI**参考模型定义了七层，**TCP/IP**协议族通则简化为四层协议系统：
 
-<img src="./https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ip-7.gif" width="60%" alt=""/>
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ip-7.gif" width="60%" alt=""/>
 
 应用层通常是一个用户进程，而下三层则一般在内核中执行。
 

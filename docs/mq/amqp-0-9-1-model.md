@@ -37,7 +37,7 @@ fetch/pull messages from queues on demand.
 
 AAMQP 0-9-1的工作过程如下图：消息（message）被发布者（publisher）发送给交换机（exchange），交换机常常被比喻成邮局或者邮箱。然后交换机将收到的消息根据路由规则分发给绑定的队列（queue）。最后AMQP代理会将消息投递给订阅了此队列的消费者，或者消费者按照需求自行获取。
 
-<img src="./images/hello-world-example-routing.png" alt="Publish path from publisher to consumer via exchange and queue" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/hello-world-example-routing.png" alt="Publish path from publisher to consumer via exchange and queue" />
 
 When publishing a message, publishers may specify various
 _message attributes_ (message meta-data). Some of this
@@ -204,7 +204,7 @@ A direct exchange can be represented graphically as follows:
 
 direct exchange可以用图形方式表示如下：
 
-<img src="./images/exchange-direct.png" alt="exchange delivering messages to  queues based on routing key" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchange-direct.png" alt="exchange delivering messages to  queues based on routing key" />
 
 ### Fanout Exchange
 
@@ -242,7 +242,7 @@ A fanout exchange can be represented graphically as follows:
 
 一个fanout exchange图形化的表述如下：
 
-<img src="./images/exchange-fanout.png" alt="exchange delivering messages to three queues" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchange-fanout.png" alt="exchange delivering messages to three queues" />
 
 ### Topic Exchange
 
@@ -282,7 +282,7 @@ Example uses:
 
 对每一条消息，Topic交换器会遍历所有的绑定关系，检查消息指定的路由键是否匹配绑定关系中的路由键，如果匹配，则将消息推送到相应队列。
 
-<img src="./images/exchange-topic.png" alt="exchange topic" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchange-topic.png" alt="exchange topic" />
 
 使用示例：
 
@@ -328,7 +328,7 @@ will not be used to evaluate matches.
 
 Headers交换器是一种不常用的交换器，它使用多个属性进行路由，这些属性一般称为消息头，它不使用路由键进行消息路由。消息头(Message Headers)是消息属性(消息元数据)部分，因此，使用Headers交换器在建立队列和交换器的绑定关系的时候需要指定一组键值对，发送消息到Headers交换器时候，需要在消息属性中携带一组键值对作为消息头。Headers交换器也是忽略路由键的。
 
-<img src="./images/exchange-header.png" alt="exchange topic" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchange-header.png" alt="exchange topic" />
 
 头交换机可以视为直连交换机的另一种表现形式。头交换机能够像直连交换机一样工作，不同之处在于头交换机的路由规则是建立在头属性值之上，而不是路由键。路由键必须是一个字符串，而头属性值则没有这个约束，它们甚至可以是整数或者哈希值（字典）等。
 
@@ -686,7 +686,7 @@ AMQP 0-9-1由许多方法（methods）构成。方法即是操作，这跟面向
 
 如下的例子：客户端要求消息代理使用exchange.declare方法声明一个新的交换机：
 
-<img src="./images/exchange-declare.png" alt="exchange.declare" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchange-declare.png" alt="exchange.declare" />
 
 As shown on the diagram above,
 `exchange.declare` carries several
@@ -699,7 +699,7 @@ If the operation succeeds, the broker responds with the `exchange.declare-ok` me
 
 操作成功后，消息代理使用exchange.declare-ok方法进行回应：
 
-<img src="./images/exchange-declare-ok.png" alt="exchange.declare-ok" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchange-declare-ok.png" alt="exchange.declare-ok" />
 
 `exchange.declare-ok` does not carry any
 parameters except for the channel number (channels will be
@@ -713,9 +713,9 @@ exchange.declare-ok方法除了通道号之外没有携带任何其他参数（�
 
 AMQP队列类的配对方法 - queue.declare方法 和 queue.declare-ok有着与其他配对方法非常相似的一系列事件：
 
-<img src="./images/queue-declare.png" alt="queue.declare" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/queue-declare.png" alt="queue.declare" />
 
-<img src="./images/queue-declare-ok.png" alt="queue.declare-ok" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/queue-declare-ok.png" alt="queue.declare-ok" />
 
 Not all AMQP 0-9-1 methods have counterparts. Some
 (`basic.publish` being the most widely used one)

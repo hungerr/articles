@@ -30,7 +30,7 @@
 
 Reno 被许多教材（例如：《计算机网络——自顶向下的方法》）所介绍，适用于低延时、低带宽的网络，它将拥塞控制的过程分为四个阶段：慢启动、拥塞避免、快重传和快恢复，对应的状态如下所示：
 
-![](./images/reno.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/interview/images/reno.jpg)
 
 **1.慢启动算法**
 

@@ -30,7 +30,7 @@ TCP提供可靠的运输层。它使用的方法之一就是确认从另一端�
 
 对每个连接而言，除了这个滴答计数器，报文段中数据的起始序号也被记录下来。当收到一个包含这个序号的确认后，该定时器就被关闭。
 
-![](images/tcp-rtt.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-rtt.png)
 
 **RTT估计器**
 
@@ -61,7 +61,7 @@ RTO = A + 4D = 0 + 4×3 = 12s
 慢启动算法初始设置cwnd为1个报文段，此后每收到一个确认就加1。这会使窗口按指数方式增长：发送1个报文段，然后是2个，接着是4个……。
 拥塞避免算法要求每次收到一个确认时将cwnd增加1/cwnd。与慢启动的指数增加比起来，这是一种加性增长(additive increase)。我们希望在一个往返时间内最多为cwnd增加1个报文段（不管在这个RTT中收到了多少个ACK），然而慢启动将根据这个往返时间中所收到的确认的个数增加cwnd。
 
-![](images/tcp-slowstart.png) 
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-slowstart.png) 
 
 ### 快速重传与快速恢复算法
 

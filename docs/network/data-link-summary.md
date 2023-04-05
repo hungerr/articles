@@ -12,7 +12,7 @@
 
 数据链路层主要有两个封装格式，**以太网**封装与**IEEE 802**封装，以太网是当今TCP/IP采用的主要的局域网技术，由**RFC 894**定义，802由**RFC 1042**定义：
 
-![](images/tcpip-rfc894.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcpip-rfc894.png)
 
 以太网是最常见的封装格式，包括48 bit（6字节）的目的地址和源地址(硬件地址MAC)，2字节的类型，数据部分以及4字节的CRC(循环冗余码检验)。
 

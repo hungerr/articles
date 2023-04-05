@@ -44,7 +44,7 @@ channel.queue_bind(exchange=exchange_name,
 
 下图能够很好的描述这个场景：
 
-  <img src="./images/direct-exchange.png" height="170" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/direct-exchange.png" height="170" />
 
 在这个场景中，我们可以看到直连交换机X和两个队列进行了绑定。第一个队列使用orange作为绑定键，第二个队列有两个绑定，一个使用black作为绑定键，另外一个使用green。
 
@@ -52,7 +52,7 @@ channel.queue_bind(exchange=exchange_name,
 
 ### Multiple bindings多绑定
 
-  <img src="./images/direct-exchange-multiple.png" height="170" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/direct-exchange-multiple.png" height="170" />
 
 多个队列使用相同的绑定键是合法的。这个例子中，我们可以添加一个`X`和`Q1`之间的绑定，使用`black`绑定键。这样一来，直连交换机就和扇型交换机的行为一样，会将消息广播到所有匹配的队列。带有`black`路由键的消息会同时发送到`Q1`和`Q2`。
 
@@ -94,7 +94,7 @@ for severity in severities:
 
 ### 代码整合
 
-  <img src="./images/python-four.png" height="170" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/python-four.png" height="170" />
  
 `emit_log_direct.py` ([source](https://github.com/rabbitmq/rabbitmq-tutorials/blob/master/python/emit_log_direct.py))
 

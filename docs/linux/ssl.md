@@ -100,7 +100,7 @@ keytool -list -keystore tomcat.keystore -v
 
 ### 什么是x509证书链
 
-![](images/x509.svg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/linux/images/x509.svg)
 通常称为PKIX for Public Key Infrastructure 标准文件为RFC 5280
 
 x509证书一般会用到三类文件，key，csr，crt。

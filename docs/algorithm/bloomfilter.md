@@ -22,7 +22,7 @@
 
 首先建立一个m位的位图，然后对于每一个加入的元素，使用k个哈希函数求k个哈希值映射到位图的k个位置，然后将这k个位置的bit全设置为1。下图是k=3的布隆过滤器：
 
-![](./images/bloom-filter.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/bloom-filter.jpg)
 
 检索时，我们只要检索这些k个位是不是都是1就可以了：如果这些位有任何一个0，则被检元素一定不在；如果都是1，则被检元素很可能在。
 
@@ -37,11 +37,11 @@
 
 求位图大小m公式：
 
-![](./images/bloom-filter-m.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/bloom-filter-m.png)
 
 哈希函数数目k公式：
 
-![](./images/bloom-filter-k.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/bloom-filter-k.png)
 
 Python中已经有实现布隆过滤器的包：[pybloom](https://github.com/jaybaird/python-bloomfilter "pybloom")
 
@@ -184,7 +184,7 @@ Google的BigTable也使用了布隆过滤器，以减少不存在的行或列在
 
 要实现删除元素，可以采用Counting Bloom Filter。它将标准布隆过滤器位图的每一位扩展为一个小的计数器(Counter)，插入元素时将对应的k个Counter的值分别加1，删除元素时则分别减1:
 
-![](./images/bloom-filter-count.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/bloom-filter-count.jpg)
 
 代价就是多了几倍的存储空间。
 

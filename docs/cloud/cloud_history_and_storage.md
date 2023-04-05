@@ -10,7 +10,7 @@
 
 目前中国云计算的领头羊是阿里云。
 
-![](images/1.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/1.jpg)
 
 云计算的服务类型分为四类，即基础设施即服务(IaaS)、平台即服务(PaaS)和软件即服务(SaaS)、DaaS（数据即服务）
 
@@ -18,7 +18,7 @@
 
 为了解决PaaS中最为棘手最亟待解决的一个问题(如何给应用打包)，dotCloud公司推出了基于LXC(Linux容器项目)的Docker容器项目。与虚拟机通过操作系统实现隔离不同，容器技术只隔离应用程序的运行时环境，但容器之间可以共享同一个操作系统。所以Docker比虚拟机更加轻量级，直接打包了应用以及应用所有的依赖，从而保证了本地环境和云端环境的高度一致，做到了`build once, run everywhere`。
 
-![](images/docker.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/docker.jpg)
 
 
  Docker成为了容器生态事实上的标准，并推出了Docker容器编排平台Swarm。
@@ -27,15 +27,15 @@
 
 一般公司一个一个组分开买机器：
 
-![](images/2.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/2.jpg)
 
 允许叠加软件的公司
 
-![](images/3.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/3.jpg)
 
 Google需要大量的MapReduce工作去优化它的搜索引擎和准备数据给机器学期训练，所以把把MapReduce的工作叠加到所有的机器上面
 
-![](images/4.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/4.jpg)
 
 谷歌内部使用Borg系统作为大型集群管理系统，处理MapReduce所需要的调度scheduling的工作。
 
@@ -49,15 +49,15 @@ Google需要大量的MapReduce工作去优化它的搜索引擎和准备数据�
 
 2017年，Docker公司将Docker项目的容器运行时部分(Containerd)捐赠给CNCF。11月，K8s支持Containerd。
 
-![](images/6.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/6.png)
 
 2020 K8s宣布开始进入废弃dockershim支持的倒计时。至此k8s取得了容器编排领域的全面胜利。
 
-![](images/5.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/5.jpg)
 
 #### CNCF Landscape路线图
 
-![](images/1.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/1.png)
 
 - 容器化。目前最流行的容器化技术是Docker、Podman。
 
@@ -81,7 +81,7 @@ Google需要大量的MapReduce工作去优化它的搜索引擎和准备数据�
 
 #### [CNCF Landscape全景图](https://landscape.cncf.io/ "CNCF Landscape")
 
-![](images/2.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/2.png)
 
 从总体来看，它将云原生生态分为以下几层：
 
@@ -129,7 +129,7 @@ Google需要大量的MapReduce工作去优化它的搜索引擎和准备数据�
 
 ### K8S介绍
 
-![](images/components-of-kubernetes.svg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/components-of-kubernetes.svg)
 
 一个 Kubernetes 集群是由一组被称作节点（node）的机器组成， 这些节点上会运行由 Kubernetes 所管理的容器化应用。 且每个集群至少有一个工作节点。节点可以是一个虚拟机或者物理机器。
 
@@ -139,7 +139,7 @@ Pod 是可以在 Kubernetes 中创建和管理的、最小的可部署的计算�
 
 Pod是一组（一个或多个）容器； 这些容器共享存储、网络、以及怎样运行这些容器的声明。 Pod 中的内容总是并置（colocated）的并且一同调度，在共享的上下文中运行。
 
-![](images/pod.svg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/pod.svg)
 
 ```yaml
 apiVersion: v1
@@ -157,13 +157,13 @@ spec:
 一个 Pod 可以设置一组共享的存储卷。 Pod 中的所有容器都可以访问该共享卷，从而允许这些容器共享数据。 卷还允许 Pod 中的持久数据保留下来，即使其中的容器需要重新启动。
 
 静态制备：
-![](images/v2-3abb061dc495796aa2afc31bada33af8_b.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/v2-3abb061dc495796aa2afc31bada33af8_b.jpg)
 
 动态制备：
-![](images/v2-f4bc5294c230b3954ba719390f231600_b.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/v2-f4bc5294c230b3954ba719390f231600_b.jpg)
 
 总体架构：
-![](images/v2-cfd94cca4b32bcf42cdd253a5812aff5_b.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/v2-cfd94cca4b32bcf42cdd253a5812aff5_b.jpg)
 
 
 ### 卷各种声明方式的优劣
@@ -218,13 +218,13 @@ PV(Persistent Volume)，PV其实就是把Volume的配置声明部分从Pod中分
 
 目前比较流行的云原生存储解决方案：
 
-![](images/20220822224332.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/20220822224332.png)
 
 见[THE MOST POPULAR CLOUD NATIVE STORAGE SOLUTIONS](https://thenewstack.io/the-most-popular-cloud-native-storage-solutions/ "THE MOST POPULAR CLOUD NATIVE STORAGE SOLUTIONS")
 
 开发者调查：
 
-![](images/v2-4172da57e6ae60ec537a6818e263b9ef_r.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/v2-4172da57e6ae60ec537a6818e263b9ef_r.jpg)
 
 ### Container Attached Storage
 
@@ -243,7 +243,7 @@ PV(Persistent Volume)，PV其实就是把Volume的配置声明部分从Pod中分
 - 不同的Volume的数据使用多个独立的Controller Pod进行管理。
 
 
-![](images/cas-768x614-1.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/cas-768x614-1.png)
 
 更多内容见[Container Attached Storage: A primer](https://www.cncf.io/blog/2018/04/19/container-attached-storage-a-primer/ "CAS")
 
@@ -263,7 +263,7 @@ cStor target除了负责LUN设备管理，还负责副本之间的数据同步�
 
 比如假设创建了一个三副本的cStor PV，当用户写入数据时，cStor target会同时往三个副本写入数据，只有等三个副本都写成功后，才会响应用户，因此显然OpenEBS是一个强一致性分布式存储系统。
 
-![](images/PostgreSQL-with-OpenEBS.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/PostgreSQL-with-OpenEBS.png)
 
 
 ### Rook简介
@@ -288,9 +288,9 @@ Yugabyte DB
 
 ### 有状态应用越来越多
 
-![](images/v2-c43e80b651bbfd0c8b84e96f95dec0f4_b.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/v2-c43e80b651bbfd0c8b84e96f95dec0f4_b.png)
 
-![](images/v2-a1b4b8d3ef8e528d481b944e568150a7_b.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/v2-a1b4b8d3ef8e528d481b944e568150a7_b.jpg)
 
 ### 云原生
 
@@ -316,7 +316,7 @@ Snowflake是一家做分析型数据库/数据仓库OLAP的云计算公司。
 
 架构：
 
-![](images/9d0b20c3d7c9c4b8a73886dbc61e68ea.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/cloud/9d0b20c3d7c9c4b8a73886dbc61e68ea.png)
 
 - 存储层（Storage）
 

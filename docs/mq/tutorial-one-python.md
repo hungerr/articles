@@ -10,15 +10,15 @@ RabbitMQ和邮局的主要区别在于，它处理纸张，而是接收、存储
 
 **生产(Producing)**的意思就是发送。发送消息的程序就是一个生产者(producer)。我们一般用"P"来表示:
 
- ![](./images/producer.png)
+ ![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/producer.png)
 
 **队列(queue)**就是存在于RabbitMQ中邮箱的名称。虽然消息的传输经过了RabbitMQ和你的应用程序，但是它只能被存储于队列当中。实质上队列就是个巨大的消息缓冲区，它的大小只受主机内存和硬盘限制。多个生产者（producers）可以把消息发送给同一个队列，同样，多个消费者（consumers）也能够从同一个队列（queue）中获取数据。队列可以绘制成这样（图上是队列的名称）：
 
- ![](./images/queue.png)
+ ![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/queue.png)
 
 在这里，消费（Consuming）和接收(receiving)是同一个意思。一个**消费者（consumer**）就是一个等待获取消息的程序。我们把它绘制为"C"：
 
-![](./images/consumer.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/consumer.png)
 
 需要指出的是生产者、消费者、代理需不要待在同一个设备上；事实上大多数应用也确实不在会将他们放在一台机器上。
 
@@ -33,7 +33,7 @@ RabbitMQ和邮局的主要区别在于，它处理纸张，而是接收、存储
 
 Our overall design will look like:
 
-  <img src="./images/python-one-overall.png" height="100" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/python-one-overall.png" height="100" />
 
 生产者（producer）把消息发送到一个名为“hello”的队列中。消费者（consumer）从这个队列中获取消息。
 
@@ -50,7 +50,7 @@ code.
 
 ### 发送
 
-<img src="./images/sending.png" height="100" />
+<img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/sending.png" height="100" />
 
 我们第一个程序`send.py`会发送一个消息到队列中。首先要做的事情就是建立一个到RabbitMQ服务器的连接。
 
@@ -94,7 +94,7 @@ connection.close()
 
 ### 接收
 
-  <img src="./images/receiving.png" height="100" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/receiving.png" height="100" />
 
 我们的第二个程序`receive.py`，将会从队列中获取消息并将其打印到屏幕上。
 

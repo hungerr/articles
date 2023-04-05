@@ -38,7 +38,7 @@ SSL/TLS协议的基本思路是采用公钥加密法，将公钥放在数字证�
 
 #### 握手过程
 
-![](images/tls-shake.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/javascript/images/tls-shake.png)
 
 1.**ClientHello**：客户端发送一个随机值(稍后用于生成对话密钥)，支持的协议版本和支持的加密方法，支持的压缩方法。这里需要注意的是，客户端发送的信息之中不包括服务器的域名。也就是说，理论上服务器只能包含一个网站，否则会分不清应该向客户端提供哪一个网站的数字证书。这就是为什么通常一台服务器只能有一张数字证书的原因。
 

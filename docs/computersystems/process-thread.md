@@ -26,7 +26,7 @@
 
 私有地址空间为程序提供一个假象，好像它独占地使用系统地址空间。和这个空间中的某个地址相关联的那个内存字节是不能被其他进程读或者写的。每个私有地址空间内容一般是不同的，但都有相同的通用结构。
 
-![](images/virtual-m.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/virtual-m.png)
 
 ### 用户模式和内核模式
 
@@ -50,7 +50,7 @@ Linux提供了`/proc`的机制，允许用户模式进程访问内核数据结�
 
 中断也可以引起上下文切换。比如所有的系统都有某种产生周期性**定时器中断**的机制，通常为每1ms或者每10ms。定时器中断时，内核判断当前进程已经运行了足够长事件，并切换到另一个进程。
 
-![](images/process-context.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/process-context.png)
 
 切换前，内核代表进程A在用户模式下执行指令，切换的第一部分中，内核代表进程A在内核模式下执行指令，在某一时刻，它开始代表进程B执行指令。切换之后，核代表进程B在用户模式下执行指令。
 
@@ -160,7 +160,7 @@ POSIX标准意在期望获得源代码级别的软件可移植性。
 
 多线程是交错进行的，一些顺序就会产生错误的结果：
 
-![](images/wrong-thread.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/wrong-thread.png)
 
 线程2在第5步加载cnt，是在第2步线程1加载cnt之后，而在第6步线程1存储它之前，这样每个线程都存储了一个同样的值。
 
@@ -183,7 +183,7 @@ P和V的定义保证了正在运行的程序不可能进入信号量为负的状
 
 对于某个线程，操作共享变量的指令构成了一个**临界区**，这个临界区不应该与其他进程的临界区交替执行，称为互斥。两个临界区的交集称为**不安全区**。不安全区不包括与临界区的交界。绕开不安全区的轨迹线称之为**安全轨迹线**，反之为**不安全轨迹线**。
 
-![](images/unsafe-region.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/unsafe-region.png)
 
 ### 信号量互斥或者锁
 
@@ -193,7 +193,7 @@ P和V的定义保证了正在运行的程序不可能进入信号量为负的状
 
 P和V操作的结合创造了一组状态，叫做**禁止区**，其中s<0。因为信号量的不变性，没有实际可行的轨迹线能够包含禁止区中的状态，禁止区完全包括了不安全区，所以没有实际可行的轨迹线能够接触不安全区的任何部分。禁止区使得在任何时间点上，在被包围的临界区中，不可能有多个线程在执行指令。
 
-![](images/thread-sem.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/thread-sem.png)
 
 ### 互斥锁与二元信号量的区别
 
@@ -254,7 +254,7 @@ P和V操作的结合创造了一组状态，叫做**禁止区**，其中s<0。�
 
 死锁(deadlock)指的是一组线程被阻塞了，等待一个永远也不会为真的条件。
 
-![](images/deadlock.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/deadlock.png)
 
 - 程序员使用P和V操作顺序不当，使得两个信号量的禁止区域重叠。重叠的禁止区域阻塞了死锁状态d下每个合法方向上的进展。每个线程都在等待其他线程执行一个根本不可能发生的V操作。
 - 轨迹线可以进入死锁区域，但是不可能离开
@@ -263,7 +263,7 @@ P和V操作的结合创造了一组状态，叫做**禁止区**，其中s<0。�
 
 给定所有互斥操作一个全序，每个线程都是以一种顺序获得互斥锁并以相反的顺序释放，就是无死锁的。
 
-![](images/non-deadlock.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/non-deadlock.png)
 
 ## 进程与线程
 

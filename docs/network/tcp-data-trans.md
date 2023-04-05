@@ -30,7 +30,7 @@ TCP使用被称为**滑动窗口协议**的另一种形式的流量控制方法�
 
 使用TCP的滑动窗口协议时，接收方不必确认每一个收到的分组。在TCP中，ACK是累积的—它们表示接收方已经正确收到了一直到确认序号减1的所有字节。
 
-![](images/tcp-data-block.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-data-block.png)
 
 接收方发送ACK（报文段8），但通告其窗口大小为 0，这说明接收方已收到所有数据，但这些数据都在接收方的TCP缓冲区，因为应用程序还没有机会读取这些数据。另一个ACK（称为窗口更新）在17.4 ms后发送，表明接收方现在可以接收另外的4096个字节的数据。虽然这看起来像一个ACK，但由于它并不确认任何新数据，只是用来增加窗口的右边沿，因此被称为**窗口更新**。
 
@@ -40,7 +40,7 @@ TCP使用被称为**滑动窗口协议**的另一种形式的流量控制方法�
 
 发送端窗口包含已发送但未收到应答的数据和可以发送但是未发送的数据。
 
-![](images/tcp-sliding-window.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-sliding-window.png)
 
 在这个图中，我们将字节从1至11进行标号。接收方通告的窗口称为提出的窗口（offered window），它覆盖了从第4字节到第9字节的区域，表明接收方已经确认了包括第3字节在内的数据，且**通告窗口**大小为6。
 

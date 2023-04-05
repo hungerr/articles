@@ -7,7 +7,7 @@
 
 插入排序对少量元素的排序非常有效。工作机制就像打牌一样，为了将牌插入到已排好序的牌中，需要将牌与手中的牌从右向左进行比较。
 
-![](./images/insertionsort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/insertionsort.jpg)
 
 ```python
 def insertionSort(alist):
@@ -26,7 +26,7 @@ def insertionSort(alist):
 
 冒泡排序通过重复的交换相邻的两个反序元素来将最大元素置于数组末尾。
 
-![](./images/bubblesort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/bubblesort.jpg)
 
 ```python
 def bubbleSort(alist):
@@ -42,7 +42,7 @@ def bubbleSort(alist):
 
 首先找出序列中的最大元素，与最后一个元素交换位置，然后找出次大元素，与倒数第二个元素交换位置，以此类推。
 
-![](./images/selectionsort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/selectionsort.jpg)
 
 ```python
 def selectionSort(alist):
@@ -62,9 +62,9 @@ SHELL排序通过比较相距一定间隔的元素来工作。各趟排序随着
 
 使用希尔增量(h<sub>t</sub>=N/2,h<sub>k</sub>=h<sub>k+1</sub>/2)时希尔排序的最坏运行时间为Θ(N<sup>2</sup>)，使用Hibbard增量(1,3,7,...,2<sup>k</sup>-1)的希尔排序的最坏运行时间为Θ(N<sup>3/2</sup>)。
 
-![](./images/shellsort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/shellsort.jpg)
 
-![](./images/shellsort2.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/shellsort2.jpg)
 
 ```python
 def shellSort(alist):
@@ -93,7 +93,7 @@ def gapinsertionSort(alist, gap):
 
 合并排序基本的操作是合并两个已排序的表。它是递归算法的一个很好的实例。合并排序需要花费将数据拷贝到临时数组再拷贝回来这样一些附加的工作。
 
-![](./images/mergesort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/mergesort.jpg)
 
 ```python
 def mergeSort(alist):
@@ -128,7 +128,7 @@ def mergeSort(alist):
 
 合并排序的另一种非递归实现:
 
-![](./images/mergesort2.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/mergesort2.jpg)
 
 ```python
 def mergeSort(alist):
@@ -177,7 +177,7 @@ def merge(alist, start, t, end):
 
 建立最大堆后将最大元素与堆最后的单元互换，堆大小缩小一，然后执行根的下滤操作找出第二大的元素。
 
-![](./images/heapsort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/heapsort.jpg)
 
 ```python
 def heapSort(alist):
@@ -224,8 +224,8 @@ def perDown(alist, start, end):
 
 当leftmark在rightmark左边时，将leftmark右移，移过小于v的元素，将rightmark左移，移过大于v的元素，当leftmark，rightmark停止时，将leftmark和rightmark元素互换，直到leftmark到rightmark右边为止。
 
-![](./images/quicksort.jpg)
-![](./images/quicksort2.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/quicksort.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/quicksort2.jpg)
 
 ```python
 def quickSort(alist):

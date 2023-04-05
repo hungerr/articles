@@ -10,7 +10,7 @@ IP是TCP/IP协议族中最为核心的协议。所有的TCP、UDP、ICMP及IGMP�
 
 普通的IP首部长为20个字节，除非含有选项字段：
 
-![](images/ip-header.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/ip-header.png)
 
 版本号指IPv4或者IPv6。
 
@@ -96,7 +96,7 @@ IP路由选择主要完成以下这些功能：
 
 大多数的子网例子都是B类地址。其实，子网还可用于C类地址，只是它可用的比特数较少而已。很少出现 A类地址的子网例子是因为A类地址本身就很少。
 
-![](images/subnet.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/subnet.png)
 
 子网对外部路由器来说隐藏了内部网络组织的细节。在我们的网络例子中，所有的IP地址都有一个B类网络号**140.252**。但是其中有超过30个子网，多于400台主机分布在这些子网中。由一台路由器提供了Internet的接入。在这个图中，我们把大多数的路由器编号为 Rn，n是子网号。我们给出了连接这些子网的路由器，同时还包括了扉页前图中的九个系统。
 
@@ -111,7 +111,7 @@ IP路由选择主要完成以下这些功能：
 
 子网掩码可以是**非连续的**，比如255.255.0.255可以作为A类地址的子网掩码，但RFC建议反对使用**非连续的子网掩码**。
 
-![](images/subnetmask.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/subnetmask.png)
 
 如果知道本机的IP地址，那么就知道它是否为A类、B类或C类地址，也就知道网络号和子网号之间的分界线。而根据子网掩码就可知道子网号与主机号之间的分界线。
 
@@ -119,7 +119,7 @@ IP路由选择主要完成以下这些功能：
 
 子网号也可以变换长度：
 
-![](images/subnet-2.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/subnet-2.png)
 
 把子网号从8 bit扩充到11 bit，把主机号从8 bit减为5 bit。
 

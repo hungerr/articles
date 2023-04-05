@@ -25,7 +25,7 @@
 
 It's easiest to explain this in an example:
 
-  <img src="./images/python-five.png" height="170" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/python-five.png" height="170" />
 
 这个例子里，我们发送的所有消息都是用来描述小动物的。发送的消息所携带的路由键是由三个单词所组成的，这三个单词被两个.分割开。路由键里的第一个单词描述的是动物的手脚的利索程度，第二个单词是动物的颜色，第三个是动物的种类。所以它看起来是这样的： `<celerity>.<colour>.<species>`。
 

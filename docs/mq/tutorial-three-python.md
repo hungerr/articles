@@ -31,7 +31,7 @@ RabbitMQ消息模型的核心理念是：发布者（producer）不会直接发�
 
 发布者（producer）只需要把消息发送给一个交换机（exchange）。交换机非常简单，它一边从发布者方接收消息，一边把消息推送到队列。交换机必须知道如何处理它接收到的消息，是应该推送到指定的队列还是是多个队列，或者是直接忽略消息。这些规则是通过交换机类型（exchange type）来定义的。
 
-  <img src="./images/exchanges.png" height="110" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/exchanges.png" height="110" />
 
 有几个可供选择的交换机类型：直连交换机（direct）, 主题交换机（topic）, 头交换机(headers)和 扇型交换机（fanout）。我们在这里主要说明最后一个 —— 扇型交换机（fanout）。先创建一个`fanout`类型的交换机，命名为`logs`：
 
@@ -99,7 +99,7 @@ properties in the [guide on queues](/queues.html).
 
 ### Bindings绑定
 
-  <img src="./images/bindings.png" height="90" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/bindings.png" height="90" />
 
 我们已经创建了一个扇型交换机（fanout）和一个队列。现在我们需要告诉交换机如何发送消息给我们的队列。交换器和队列之间的联系我们称之为绑定（binding）。
 
@@ -120,7 +120,7 @@ channel.queue_bind(exchange='logs',
 
 ### 代码整合
 
-  <img src="./images/python-three-overall.png" height="160" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/python-three-overall.png" height="160" />
  
 发布日志消息的程序看起来和之前的没有太大区别。最重要的改变就是我们把消息发送给`logs`交换机而不是匿名交换机。在发送的时候我们需要提供`routing_key`参数，但是它的值会被扇型交换机（fanout exchange）忽略。以下是`emit_log.py`脚本：
 

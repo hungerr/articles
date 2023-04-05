@@ -39,7 +39,7 @@ CPython创建变量时，它会分配内存，然后计算该变量的引用有�
 
 如果你想通过使用线程机制在单个解释器（Python进程）内实现并发功能，而且线程是IO密集型（比如网络IO或磁盘IO），你会看到GIL争夺的后果。
 
-![](images/66372-20180802111546711-1549135192.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/python/images/66372-20180802111546711-1549135192.png)
 
 上图来自大卫•比兹利（David Beazley）撰写的《GIL可视化》文章：[http://dabeaz.blogspot.com/2010/01/python-gil-visualized.html](http://dabeaz.blogspot.com/2010/01/python-gil-visualized.html)
 
@@ -114,15 +114,15 @@ Python为你这么做这项工作，你永远看不到，也不需要操心。
 
 为了说明我的观点，我将使用可在Mac OS中使用的一种名为Dtrace的系统调用跟踪工具。CPython发行版并未内置DTrace，所以你得重新编译CPython。我使用3.6.6进行演示。
 
-![](images/640.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/python/images/640.webp)
 
 现在python.exe将在整个代码中使用Dtrace跟踪器。保罗•罗斯（Paul Ross）写了一篇关于Dtrace的[杂谈](https://github.com/paulross/dtrace-py#the-lightning-talk)。你可以下载Python的DTrace启动[文件](https://github.com/paulross/dtrace-py/tree/master/toolkit)来测量函数调用、执行时间、CPU时间、系统调用和各种好玩的指标。比如
 
-![](images/641.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/python/images/641.webp)
 
 py_callflow跟踪器显示你应用程序中的所有函数调用。
 
-![](images/642.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/python/images/642.webp)
 
 **那么，Python的动态类型会让它变慢吗？**
 

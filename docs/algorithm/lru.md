@@ -6,7 +6,7 @@
 
 `虚拟内存`使用`页表`来记录和判断一个`虚拟页`是否缓存在物理内存中：
 
-![](./images/lru-page-table.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/lru-page-table.png)
 
 如上图所示，当CPU访问`虚拟页VP3`时，发现VP3并未缓存在物理内存之中，这称之为`缺页`，现在需要将VP3从磁盘复制到物理内存中，但在此之前，为了保持原有空间的大小，需要在物理内存中选择一个`牺牲页`，将其复制到磁盘中，这称之为`交换`或者`页面调度`，图中的`牺牲页`为VP4。把哪个页面调出去可以达到调动尽量少的目的？最好是每次调换出的页面是所有内存页面中最迟将被使用的——这可以最大限度的推迟页面调换，这种算法，被称为理想页面置换算法，但这种算法很难完美达到。
 
@@ -17,13 +17,13 @@
 
 根据[LRU原理和Redis实现](https://zhuanlan.zhihu.com/p/34133067)所示，假定系统为某进程分配了3个物理块，进程运行时的页面走向为 7 0 1 2 0 3 0 4，开始时3个物理块均为空，那么`LRU`算法是如下工作的：
 
-![](./images/lru-v-stack.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/lru-v-stack.jpg)
 
 ## 基于哈希表和双向链表的LRU算法实现
 
 如果要自己实现一个`LRU`算法，可以用哈希表加双向链表实现：
 
-![](./images/lru-hash-link.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/lru-hash-link.jpg)
 
 设计思路是，使用哈希表存储 key，值为链表中的节点，节点中存储值，双向链表来记录节点的顺序，头部为最近访问节点。
 

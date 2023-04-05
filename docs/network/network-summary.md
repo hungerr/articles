@@ -4,7 +4,7 @@
 
 网络协议通常分不同层次进行开发，每一层分别负责不同的通信功能。**OSI**参考模型定义了七层，**TCP/IP**协议族通则简化为四层协议系统：
 
-<img src="./images/tcp-ip-7.gif" width="60%" alt=""/>
+<img src="./https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ip-7.gif" width="60%" alt=""/>
 
 应用层通常是一个用户进程，而下三层则一般在内核中执行。
 
@@ -14,7 +14,7 @@
 
 应用层和运输层使用`端到端（End-to-end）`协议。在图中，只有端系统需要这两层协议。但是，网络层提供的却是`逐跳（Hop-by-hop）`协议，两个端系统和每个中间系统都要使用它：
 
-![](images/tcp-ip-summary-3.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ip-summary-3.png)
 
 在TCP/IP协议族中，网络层**IP**提供的是一种不可靠的服务。也就是说，它只是尽可能快地把分组从源结点送到目的结点，但是并不提供任何可靠性保证。而另一方面，**TCP**在不可靠的**IP**层上提供了一个可靠的运输层。为了提供这种可靠的服务，**TCP**采用了超时重传、发送和接收端到端的确认分组等机制。由此可见，运输层和网络层分别负责不同的功能。
 
@@ -40,7 +40,7 @@
 
 区分各类地址的最简单方法是看它的第一个十进制整数：
 
-![](images/tcp-ip-summary-4.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ip-summary-4.jpg)
 
 需要再次指出的是，多接口主机具有多个IP地址，其中每个接口都对应一个IP地址。
 
@@ -58,7 +58,7 @@ TCP和UDP采用16 bit的端口号来识别应用程序。
 
 当应用程序用TCP传送数据时，数据被送入协议栈中，然后逐个通过每一层直到被当作一串比特流送入网络。其中每一层对收到的数据都要增加一些首部信息（有时还要增加尾部信息），该过程如图1-7所示。TCP传给IP的数据单元称作**TCP报文段**或简称为TCP段（**TCP segment**）。IP传给网络接口层的数据单元称作**IP数据报(IP datagram)**。通过以太网传输的比特流称作**帧(Frame)**:
 
-![](images/tcp-ip-summary-6.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ip-summary-6.png)
 
 ### RFC
 

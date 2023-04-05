@@ -15,7 +15,7 @@ AMQP中的各种概念，Message、Producer、Exchange、Queue、Consumer、Conn
 
 对于不同的Transport的支持：
 
-![](./images/kombu-1.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/kombu-1.png)
 
 ### 代码示例
 

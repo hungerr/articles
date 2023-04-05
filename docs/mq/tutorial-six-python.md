@@ -74,7 +74,7 @@ channel.basic_publish(exchange='',
 ### Summary
 
 
-  <img src="./images/python-six.png" height="200" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/python-six.png" height="200" />
 
 我们的RPC如此工作:
 

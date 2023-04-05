@@ -30,7 +30,7 @@ TCP通过下列方式来提供可靠性：
 
 TCP数据被封装在一个IP数据报中，TCP首部如果不计任选字段，它通常是20个字节：
 
-![](images/tcp-header.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-header.png)
 
 每个TCP段都包含源端和目的端的端口号，用于寻找发端和收端应用进程。这两个值加上IP首部中的源端IP地址和目的端IP地址唯一确定一个TCP连接。一个IP地址和一个端口号也称为一个插口（ socket）。
 

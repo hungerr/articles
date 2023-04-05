@@ -8,7 +8,7 @@
 
 ### 系统的硬件组成
 
-![](images/computer-hardware.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/computer-hardware.png)
 
 **总线**
 
@@ -41,16 +41,16 @@ CPU一直在不断的执行PC指向的指令。再更新PC，使其指向下一�
 
 1.键盘上输入'./hello'后，shell程序将字符逐一读入寄存器，再把它存放到内存中
 
-![](images/hello-1.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/hello-1.png)
 
 2.敲回车，shell程序知道已经结束了命令输入，执行一系列指令加载可执行的hello文件，这些指令将hello文件中代码和数据从磁盘复制到内存。
 利用直接存储器存取(DMA)技术，数据可以不通过处理器而直接从磁盘到达主存。
 
-![](images/hello-2.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/hello-2.png)
 
 3.加载到主存后，处理器开始执行hello程序中的机器语言指令，这些指令将字符串中的字节从主存复制到寄存器文件，再从寄存器文件中复制到显示设备。
 
-![](images/hello-3.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/hello-3.png)
 
 ### 高速缓存
 
@@ -62,7 +62,7 @@ L1和L2高速缓存采用一种叫静态随机访问存储器(SRAM)的硬件技�
 
 参考：[为什么寄存器比内存快？](http://www.ruanyifeng.com/blog/2013/10/register.html)
 
-![](images/cache.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/cache.png)
 
 存储器层级结构的主要思想是上一层的存储器作为低一层存储器的高速缓存。
 
@@ -74,7 +74,7 @@ L1和L2高速缓存采用一种叫静态随机访问存储器(SRAM)的硬件技�
 
 操作系统通过几个基本的抽象概念(进程、虚拟内存和文件)来实现这两个功能：
 
-![](images/abstract-system.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/abstract-system.png)
 
 **进程**
 
@@ -82,7 +82,7 @@ L1和L2高速缓存采用一种叫静态随机访问存储器(SRAM)的硬件技�
 
 进程是操作系统对一个正在运行的程序的一种抽象，在一个系统中可以同时运行多个进程，而每个进程都好像在独占地使用硬件。并发运行，是说一个进程的指令和另一个进程的指令交错执行。这通过处理器在进程间切换来实现，称之为上下文切换。操作系统保持跟踪程序运行所需的所有状态信息，这种状态就是上下文，包括PC和寄存器文件当前值，主存的内容。上下文切换，即保存当前进程的上下文，恢复新进程的上下文，然后将控制权传递到新进程。新进程就从它上次停止的地方开始。
 
-![](images/process-context.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/process-context.png)
 
 上下文切换由操作系统内核(kernel)管理的。**内核**是操作系统代码常驻内存的部分。程序需要操作系统的某些操作时，比如读写文件，它就执行一条特殊的系统调用指令，将控制权传递给内核。然后内核执行被请求的操作并返回应用程序。内核不是一个独立的进程，它是系统管理全部进程所用的代码和数据结构的集合。
 
@@ -94,7 +94,7 @@ L1和L2高速缓存采用一种叫静态随机访问存储器(SRAM)的硬件技�
 
 虚拟内存是对主存和磁盘的抽象。它为每个进程提供了一个假象，即每个进程都在独占地使用主存。每个进程看到的内存都是一致的，称之为虚拟地址空间。Linux的虚拟地址空间：
 
-![](images/virtual-m.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/virtual-m.png)
 
 地址从下往上增大：
 
@@ -126,7 +126,7 @@ L1和L2高速缓存采用一种叫静态随机访问存储器(SRAM)的硬件技�
 
 多核处理器是将多个CPU(核)集成到一个集成电路芯片上。每个核都有自己的L1和L2高速缓存，L1分为两个部分，一个保存最近取到的指令，一个存放数据。这些核共享更高层次的高速缓存(L3)以及主存的接口。
 
-![](images/multi-core.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/computersystems/images/multi-core.png)
 
 超线程，有时候称为同时多线程(simultaneous multi-threading)，是一项允许一个CPU执行多个控制流的技术。CPU某些硬件(程序计数器和寄存器文件)有多个备份，其它的硬件部分只有一份，比如执行浮点算术运算的单元。常规的处理器需要大约20000个时钟周期做不同线程的转换，而超线程的处理器可以在单个周期的基础上决定要执行哪个线程。假设一个线程必需等到某些数据被装载到高速缓存中，那CPU就可以去执行另一个线程。
 

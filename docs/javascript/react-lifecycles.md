@@ -4,7 +4,7 @@
 ### 组件的生命周期
 每个组件都包含 “生命周期方法”，你可以重写这些方法，以便于在运行过程中特定的阶段执行这些方法
 
-![](images/react-lifecycles.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/javascript/images/react-lifecycles.png)
 
 #### 挂载
 当组件实例被创建并插入DOM中时，其生命周期调用顺序如下：

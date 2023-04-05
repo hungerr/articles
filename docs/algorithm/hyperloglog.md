@@ -71,14 +71,14 @@ hash(ele1) = 00110111
 hash(ele2) = 10010001
 ```
 
-![](./images/hyperloglog-1.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-1.webp)
 
 
 到这里，你大概已经理解了LogLog算法的基本思想，LogLog算法是在HyperLogLog算法之前提出的一个基数估计算法，HyperLogLog算法其实就是LogLog算法的一个改进版。
 
 LogLog算法完整的基数计算公式如下：
 
-![](./images/hyperloglog-2.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-2.webp)
 
 其中m代表分桶数，R头上一道横杠的记号就代表每个桶的结果（其实就是桶中数据的最长前导零+1）的均值，相比我之前举的简单的例子，LogLog算法还乘了一个常数constant进行修正，这个constant具体是多少等我讲到Java实现的时候再说。
 
@@ -88,7 +88,7 @@ LogLog算法完整的基数计算公式如下：
 
 用调和平均数就可以解决这一问题，调和平均数的结果会倾向于集合中比较小的数，x1到xn的调和平均数的公式如下：
 
-![](./images/hyperloglog-3.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-3.webp)
 
 再用这个公式算一下我和老板的平均工资：
 ```
@@ -100,11 +100,11 @@ LogLog算法完整的基数计算公式如下：
 
 再回到前面的LogLog算法，从前面的举的例子可以看出，影响LogLog算法精度的一个重要因素就是，hash值的前导零的数量显然是有很大的偶然性的，经常会出现一两数据前导零的数目比较多的情况，所以HyperLogLog算法相比LogLog算法一个重要的改进就是使用调和平均数而不是平均数来聚合每个桶中的结果，HyperLogLog算法的公式如下：
 
-![](./images/hyperloglog-4.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-4.webp)
 
 其中constant常数和m的含义和之前的LogLog算法公式中的含义一致，Rj代表(第j个桶中的数据的最大前导零数目+1)，为了方便理解，我将公式再拆解一下：
 
-![](./images/hyperloglog-5.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-5.webp)
 
 其实从算术平均数改成调和平均数这个优化是很容易想到的，但是为什么LogLog算法没有直接使用调和平均数吗？网上看到一篇英文文章里说大概是因为使用算术平均数的话证明比较容易一些，毕竟科学家们出论文每一步都是要证明的，不像我们这里简单理解一下，猜一猜就可以了。
 
@@ -132,7 +132,7 @@ constant常数的选择与分桶的数目有关，具体的数学证明请看论
 
 假设：m为分桶数，p是m的以2为底的对数
 
-![](./images/hyperloglog-6.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-6.webp)
 
 则按如下的规则计算constant
 
@@ -155,7 +155,7 @@ switch (p) {
 
 如果分桶越多，那么估计的精度就会越高，统计学上用来衡量估计精度的一个指标是“相对标准误差”(relative standard deviation，简称RSD)，RSD的计算公式这里就不给出了，百科上一搜就可以知道，从直观上理解，RSD的值其实就是（(每次估计的值）在（估计均值）上下的波动）占（估计均值）的比例（这句话加那么多括号是为了方便大家断句）。RSD的值与分桶数m存在如下的计算关系：
 
-![](./images/hyperloglog-7.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/algorithm/hyperloglog-7.webp)
 
 有了这个公式，你可以先确定你想要达到的RSD的值，然后再推出分桶的数目m。
 

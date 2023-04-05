@@ -6,7 +6,7 @@ UDP 不止支持一对一的传输方式，同样支持一对多，多对多，�
 
 UDP数据报封装成一份IP数据报的格式：****
 
-![](images/udp-ip.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/udp-ip.png)
 
 UDP**不提供可靠性**：它把应用程序传给IP层的数据发送出去，但是并不保证它们能到达目的地。
 
@@ -20,7 +20,7 @@ UDP 没有拥塞控制，一直会以恒定的速度发送数据。即使网络�
 
 UDP首部的各字段如下：
 
-![](images/udp-header.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/udp-header.jpg)
 
 UDP的头部开销小，只有**8**字节，相比 TCP 的至少**20**字节要少得多，在传输数据报文时是很**高效**的。
 
@@ -40,7 +40,7 @@ UDP检验和覆盖UDP首部和UDP数据。回想IP首部的检验和，它只覆
 
 其次，UDP数据报和TCP段都包含一个**12字节长的伪首部**，它是为了计算检验和而设置的。伪首部包含IP首部一些字段。其目的是让UDP两次检查数据是否已经正确到达目的地。UDP数据报中的伪首部格式:
 
-![](images/udp-fake-header.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/udp-fake-header.png)
 
 如果发送端没有计算检验和而接收端检测到检验和有差错，那么UDP数据报就要被悄悄地**丢弃**。不产生任何差错报文（当IP层检测到IP首部检验和有差错时也这样做）。
 
@@ -70,7 +70,7 @@ IP首部中包含的数据为分片和重新组装提供了足够的信息。对
 
 使用UDP很容易导致IP分片。
 
-![](images/udp-split.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/udp-split.png)
 
 任何运输层首部只出现在第1片数据中。
 

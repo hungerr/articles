@@ -5,7 +5,7 @@ NFS，网络文件系统，为客户端提供透明的文件访问。NFS的基�
 ### RPC
 大多数的网络程序设计都是客户发送命令给服务器，服务器向客户发送应答，比如Ping、Traceroute、DNS、SNMP、Telenet、Ftp和SMTP的客户和服务器。RPC是一种不同的网络程序设计方法。客户端程序只是调用了服务器程序提供的函数。
 
-![](images/rpc.webp)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/rpc.webp)
 
 一个完整的RPC架构里面包含了四个核心的组件，分别是`Client` ,`Server`,`Client Stub`以及`Server Stub`，这个Stub大家可以理解为`存根`。
 
@@ -25,8 +25,8 @@ NFS，网络文件系统，为客户端提供透明的文件访问。NFS的基�
 
 `Sun RPC` 有两个版本。一个版本建立在SOCKET API基础上，和TCP和UDP打交道。另一个称为TI-RPC的（独立于运输层），建立在TLI API基础上，可以和内核提供的任何运输层协议打交道。
 
-![](images/rpc-call.png)
-![](images/rpc-reply.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/rpc-call.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/rpc-reply.png)
 
 事务标识符`XID`由客户程序设置，由服务器程序返回。当客户收到一个应答，它将服务器返回的`XID`与它发送的请求的`XID`相比较。如果不匹配，客户就放弃这个报文，等待从服务器返回的下一个报文。每次客户发出一个新的RPC，它就会改变报文的`XID`。但是如果客户重传一个以前发送过的 RPC（因为它没有收到服务器的一个应答），重传报文的`XID`不会修改。
 
@@ -68,7 +68,7 @@ NFS是一个使用Sun RPC构造的客户服务器应用程序。 NFS客户通过
 
 因为两个理由，NFS一般不这样实现。首先，访问一个NFS文件必须对客户透明。因此，NFS的客户调用是由客户操作系统代表用户进程来完成的。第二，出于效率的考虑，NFS服务器在服务器操作系统中实现。如果 NFS服务器是一个用户进程，每个客户请求和服务器应答（包括读和写的数据）将不得不在内核和用户进程之间进行切换，这个代价太大。
 
-![](images/nfs-config.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/nfs-config.png)
 
 图29-3显示了一个NFS客户和一个NFS服务器的典型配置，图中有很多地方需要注意：
 
@@ -122,7 +122,7 @@ Unix服务器一般在文件句柄中存储下面的信息：文件系统标识�
 一般情况下，这是在客户主机引导时完成的。最后的结果就是客户获得服务器文件系统的一
 个文件句柄。
 
-![](images/nfs-mount.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/nfs-mount.png)
 
 依次发生了下面的动作。
 1. 服务器上的端口映射器一般在服务器主机引导时被启动。
@@ -139,7 +139,7 @@ Unix服务器一般在文件句柄中存储下面的信息：文件系统标识�
 
 这个命令将主机bsdi（一个NFS服务器）上的/usr目录安装成为本地文件系统/nfS/bsdi/usr
 
-![](images/nfs-mount-wireshart.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/nfs-mount-wireshart.jpg)
 
 ### NFS过程
 现在我们描述NFS服务器提供的15个过程（使用的个数与NFS过程的实际个数不一样，因为我们把它们按照功能分了组）。

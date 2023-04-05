@@ -4,7 +4,7 @@ TCP是一个面向连接的协议。无论哪一方向另一方发送数据之�
 
 ### 连接建立：三次握手
 
-![](images/tcp-init-link.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-init-link.png)
 
 1) 请求端（通常称为客户）发送一个SYN段指明客户打算连接的服务器的端口，以及初始序号（ISN）。这个SYN段为报文段1。客户端便进入 SYN_SENT 状态
 
@@ -25,7 +25,7 @@ TCP是一个面向连接的协议。无论哪一方向另一方发送数据之�
 建立一个连接需要三次握手，而终止一个连接要经过 4次握手。这由TCP的半关闭（half-close）造成的。既然一个TCP连接是全双工（即数据在两个方向上能同时传递），因此每个方向必须单独地进行关闭。这原则就是当一方完成它的数据发送任务后就能发送一个FIN来终止
 这个方向连接。当一端收到一个FIN，它必须通知应用层另一端几经终止了那个方向的数据传送。发送FIN通常是应用层进行关闭的结果。
 
-![](images/tcp-close.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-close.png)
 
 收到一个FIN只意味着在这一方向上没有数据流动。一个TCP连接在收到一个FIN后仍能发送数据。而这对利用半关闭的应用来说是可能的，尽管在实际应用中只有很少的 T C P应用程序这样做。
 
@@ -138,7 +138,7 @@ TCP提供了连接的一端在结束它的发送后还能接收来自另一端�
 
 ### TCP状态机
 
-![](images/tcp-fsm.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-fsm.png)
 
 ### 2MSL等待状态
 
@@ -170,13 +170,13 @@ RFC 793 [Postel 1981c] 指出MSL为2分钟。然而，实现中的常用值是30
 
 每一方必须发送一个 SYN，且这些SYN必须传递给对方。这需要每一方使用一个对方熟知的端口作为本地端口。这又称为同时打开。
 
-![](images/double-syn.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/double-syn.png)
 
 一个同时打开的连接需要交换4个报文段，比正常的三次握手多一个。此外，要注意的是我们没有将任何一端称为客户或服务器，因为每一端既是客户又是服务器。尽管很难，但仍有可能产生一个同时打开的连接。两端必须几乎在同时启动，以便收到彼此的SYN。只要两端有较长的往返时间就能保证这一点。
 
 双方都执行主动关闭也是可能的，TCP协议也允许这样的同时关闭。
 
-![](images/double-close.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/double-close.png)
 
 ### 复位报文段RST
 
@@ -210,7 +210,7 @@ RST表示复位，用来异常的关闭连接，在TCP的设计中它是不可�
 #### tcp报文失序
 比如，客户端向服务器发送6个报文段，先发送了2,3,4,5,6，此时已接近服务器接收端的接收窗口大小，服务端认为剩余的窗口大小不足以接收报文段1(离接收窗口还有一个MSS)，于是向客户端发送RST请求。
 
-![](images/tcp-ebay-1.jpg)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/network/images/tcp-ebay-1.jpg)
 
 [链接](https://mp.weixin.qq.com/s/8w36DZN1oc-HyvpabRNhdw)
 

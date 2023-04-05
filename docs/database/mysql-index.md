@@ -102,7 +102,7 @@ ALTER TABLE tbl_name
 
 使用B-Tree数据结构来存储数据：
 
-![](images/b-tree-index.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/database/images/b-tree-index.png)
 
 B-Tree通常意味着所有值都是按照顺序存储的，每一个叶子页到根的距离相同。根节点的槽中存放了指向子节点的指针。叶子节点的指针指向的是被索引的数据，而不是其他的节点页。根节点和叶子节点之间可能有很多层节点页，树的深度和表的大小直接相关。
 

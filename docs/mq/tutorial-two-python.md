@@ -6,7 +6,7 @@
 
 教程使用 [Pika](https://pypi.python.org/pypi/pika) RabbitMQ 客户端[version 1.0.0](https://pika.readthedocs.io/en/stable/).
 
-  <img src="./images/python-two.png" height="110" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/python-two.png" height="110" />
 
 ### What This Tutorial Focuses On
 
@@ -183,7 +183,7 @@ channel.basic_publish(exchange='',
 
 这时因为RabbitMQ只管分发进入队列的消息，不会关心有多少消费者（consumer）没有作出响应。它盲目的把第n-th条消息发给第n-th个消费者。
 
-  <img src="./images/prefetch-count.png" height="110" />
+  <img src="https://gitarticle.oss-cn-shanghai.aliyuncs.com/mq/images/prefetch-count.png" height="110" />
 
 
 我们可以使用`basic.qos`方法，并设置`prefetch_count=1`。这样是告诉RabbitMQ，再同一时刻，不要发送超过1条消息给一个工作者（worker），直到它已经处理了上一条消息并且作出了响应。这样，RabbitMQ就会把消息分发给下一个空闲的工作者（worker）。

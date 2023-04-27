@@ -52,6 +52,7 @@
 - [虚拟内存](docs/computersystems/vm.md "虚拟内存")
 
 ### 前端
+- [范围请求](docs/javascript/partial-requests.md "范围请求")
 - [有关this](docs/javascript/this.md "有关this")
 - [HTTPS原理](docs/javascript/https.md "HTTPS原理")
 - [同源策略及跨域](docs/javascript/origin-cross.md "同源策略及跨域")

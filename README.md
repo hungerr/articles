@@ -126,5 +126,8 @@
 - [RSA](docs/encrypt/rsa.md "RSA")
 - [python RSA](docs/encrypt/python-rsa.md "python RSA")
 
+### 分布式系统
+- [RAFT](docs/distributed/raft.md "RAFT")
+
 ### Tips
 - [tips](docs/tips/tips.md "Tips")

@@ -60,7 +60,7 @@
 `Redis`3.0之后又改善了算法的性能，会提供一个待淘汰候选key的`pool`，里面默认有16个key，按照空闲时间排好序。更新时从`Redis`键空间随机选择N个key，分别计算它们的空闲时间`idle`，key只会在`pool`不满或者空闲时间大于`pool`里最小的时，才会进入`pool`，然后从`pool`中选择空闲时间最大的key淘汰掉。
 
 真实`LRU`算法与近似`LRU`的算法可以通过下面的图像对比：
-![](./images/redis_lru_comparison.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/python/images/redis_lru_comparison.png)
 
 浅灰色带是已经被淘汰的对象，灰色带是没有被淘汰的对象，绿色带是新添加的对象。可以看出，`maxmemory-samples`值为5时`Redis 3.0`效果比`Redis 2.8`要好。使用10个采样大小的`Redis 3.0`的近似`LRU`算法已经非常接近理论的性能了。
 

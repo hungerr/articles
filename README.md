@@ -12,6 +12,7 @@
 - [Flask SqlAlchemy动态建表](docs/python/flask-sql-table.md "Flask SqlAlchemy动态建表")
 - [Python并发编程](docs/python/threading.md "Python并发编程")
 - [Python异常](docs/python/exception.md "Python异常")
+- [Flask Cookie](docs/python/flask-cookie.md "Flask Cookie")
 
 ### GO
 - [Go配置](docs/go/go.md "Go")
@@ -56,6 +57,7 @@
 - [有关this](docs/javascript/this.md "有关this")
 - [HTTPS原理](docs/javascript/https.md "HTTPS原理")
 - [同源策略及跨域](docs/javascript/origin-cross.md "同源策略及跨域")
+- [Cookie](docs/javascript/cookie.md "Cookie")
 - [Virtual Dom不一定比原生Dom操作快(转载)](docs/javascript/native-dom-vs-virtual-dom.md "Virtual Dom")
 - [HTTP1.0、HTTP1.1和HTTP2.0主要特性对比(转载)](https://segmentfault.com/a/1190000013028798)
 - [NPM简介](docs/javascript/npm.md "NPM")

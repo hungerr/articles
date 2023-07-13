@@ -59,7 +59,7 @@
 - 匹配几个之一： `[]`，`WHERE name REGEXP '[jet]';`匹配jet之一，排除，`[^123]`匹配非123之一，`[0-9]`，`[a-z]`
 - 特殊字符：`\\.[]-`
 
-![](images/regexp-char.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/database/images/regexp-char.png)
 
 `^`有双重意义，开始或者非。`$`代表结尾。
 
@@ -73,11 +73,11 @@
 
 **文本处理函数**
 
-![](images/text-func.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/database/images/text-func.png)
 
 **日期和时间处理函数**
 
-![](images/date-func.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/database/images/date-func.png)
 
 日期格式必须为`yyyy-mm-dd`，`WHERE order_date = '2005-09-01';`
 
@@ -87,7 +87,7 @@
 
 **数值处理函数**
 
-![](images/num-func.png)
+![](https://gitarticle.oss-cn-shanghai.aliyuncs.com/database/images/num-func.png)
 
 ### 汇总聚合函数
 

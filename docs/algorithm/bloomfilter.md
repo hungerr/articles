@@ -189,3 +189,6 @@ Google的BigTable也使用了布隆过滤器，以减少不存在的行或列在
 代价就是多了几倍的存储空间。
 
 在Redis中的布隆过滤器的支持是在4.0后支持插件的情况下，通过插件的方式实现的 ，redis的布隆过滤器插件地址：[https://github.com/RedisLabsModules/rebloom](https://github.com/RedisLabsModules/rebloom)。
+
+
+https://github.com/haiwen/seafile
